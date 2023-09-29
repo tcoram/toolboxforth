@@ -1,6 +1,6 @@
 # Warning: Here be dragons...
 
-## Tooldboxforth is... say what?
+## Toolboxforth is... say what?
 
 A throwback to an 80s style of roll-your-own-even-if-you-shouldn't language design.
 
