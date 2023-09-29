@@ -1,11 +1,31 @@
-Warning: Here be dragons...
+# Warning: Here be dragons...
 
-Under active/frantic development... 
+## Tooldboxforth is... say what?
 
-(Toolboxforth is a partial-rewrite of uForth: Mainly to support Arduino...)
+A throwback to an 80s style of roll-your-own-even-if-you-shouldn't language design.
 
 This is "toolboxforth".  It's a FORTH implementation that has been in my "toolbox"
-since 2009 (under the name uForth). Back then, I used it primarily on an MSP430.
+since 2009 (under the name uForth). Back then, I used it primarily on an MSP430. It targets
+MCUs (like ESP32, Cortex-M[0-4] and POSIX compliant operating systems).
+
+## Features
+
+* ROMable. The dictionary and RAM are separate address spaces (even if dictionary is in RAM).
+* Internal data structures/dictionary are FORTH hackable. Use @ ! for all system RAM stuff and dict! dict@ to mess with the dictionary. Dangerous. Expect to crash a lot.
+* A good portion is (self) implemented in FORTH. Just enuf C for speed and a minimal FORTH kernel.
+* Portable. Just need C. Don't even need a filesystem. MCU dictionaries can be bootraped from POSIX build generated header file.
+* 16 and 32 bit MCU friendly. Orignally started life on an MSP430... Tune as you see fit.
+* FORTH "macros" and compilation via [compile], immediate and postpone. Rewrite the compiler on the fly!
+* Tail cal optimized recursion.
+* Hackable. Everything is hackable. In fact, almost everything is hackable from FORTH itself.
+* Ugly. Yeah, this needs not only code refactoring, but conceptual refactoring.
+* Stable. Yeah I've shipped stuff using it's prior incarnation as "uforth"
+
+Is it for you? Probably not... but if you think so, here it is...
+
+Something to play with or gawk at how wrong it feels..
+
+## Details
 
 Toolboxforth is a FORTH implemented in 1 C file (just include "toolboxforth.h" for
 easy inclusion into microcontroller projects).
@@ -64,7 +84,9 @@ You will need libreadline for the posix build...
 This repo is mainly for my own "backup" and for the morbidly curious...
 as it is moving/evolving rapidly.
 
-About Me:  I'm a FORTHer since 1984.  Have never lost my love/need for FORTH.
+## Who? What?
+
+About Me:  I've been a  FORTHer since 1984.  Yeah, I have never lost my love/need for FORTH.
 I (still) use it for product development and hobbyist hacking...
 
 
