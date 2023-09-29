@@ -1,6 +1,6 @@
 Warning: Here be dragons...
 
-Under active/frantic development...
+Under active/frantic development... 
 
 (Toolboxforth is a partial-rewrite of uForth: Mainly to support Arduino...)
 
@@ -31,7 +31,7 @@ You can do some interesting stuff (and a lot crashing) by playing with that. Som
 it is used to do some low level manipulation, but often C code is used instead to
 be faster.
 For example, you should be able to walk the dictionary and mess with it (see the definition
-for "word" in util.f for a walking example.
+for "words" in util.f for a walking example.
 
 For a destructive example, the following (from util.f) implements a "forget" that will
 erase words down to a "marker".  See util.f for an example using a marker called TEST
@@ -40,6 +40,9 @@ erase words down to a "marker".  See util.f for an example using a marker called
 : mark ( <marker> ) create ;
 : forget-to-marker ( <marker> ) next-word dup (find&) lwa dict! (find) exec _here dict! ;
 ```
+
+Yeah, that's gnarly. No documentation yet, but the best way to explore is to start
+with core.f and util.f.
 
 As opinionated as this FORTH implementation may be, it has served me well (in actual
 shippable embeded products!) since 2009.
