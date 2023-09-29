@@ -6,7 +6,7 @@ extern "C" {
 #include "toolboxforth.img.h"
 
 enum {
-  LOAD_ARDUINO_WORDS=100,
+  LOAD_ESP32_WORDS=100,
   GPIO_MODE,
   GPIO_READ,
   GPIO_WRITE,
@@ -15,6 +15,11 @@ enum {
   SPI_WRITE,
   SPI_READ,
   SPI_END_TRANS,
+  UART_BEGIN,
+  UART_END,
+  UART_AVAIL,
+  UART_READ,
+  UART_WRITE
 };
   
 void tbforth_cdef (char* name, int val) {
@@ -23,7 +28,7 @@ void tbforth_cdef (char* name, int val) {
   tbforth_interpret(n);
 }
 
-void load_arduino_words () {
+void load_esp32_words () {
   tbforth_cdef("gpio-mode", GPIO_MODE);
   tbforth_cdef("gpio-read", GPIO_READ);
   tbforth_cdef("gpio-write", GPIO_WRITE);
@@ -32,8 +37,110 @@ void load_arduino_words () {
   tbforth_cdef("spi-write", SPI_WRITE);
   tbforth_cdef("spi-read", SPI_READ);
   tbforth_cdef("spi-end-trans", SPI_END_TRANS);
+  tbforth_cdef("uart-begin", UART_BEGIN);
+  tbforth_cdef("uart-end", UART_END);
+  tbforth_cdef("uart-avail", UART_AVAIL);
+  tbforth_cdef("uart-read", UART_READ);
+  tbforth_cdef("uart-write", UART_WRITE);
 }
 
+
+SPIClass *spiclass = &SPI;
+
+#if defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32C3_DEV)
+HardwareSerial Serial2(1);
+#endif
+HardwareSerial HS [] = { Serial0, Serial1, Serial2 };
+
+tbforth_stat c_handle(void) {
+  RAMC r1 = dpop();
+
+  switch(r1) {
+  case LOAD_ESP32_WORDS:
+    load_esp32_words ();
+    break;
+  case GPIO_MODE:
+    pinMode(dpop(),dpop());
+    break;
+  case GPIO_READ:
+    dpush(digitalRead(dpop()));
+    break;
+  case GPIO_WRITE:
+    digitalWrite(dpop(), dpop());
+    break;
+  case UART_WRITE:
+    r1 = dpop();
+    HS[r1].write(dpop());
+    break;
+  case UART_READ:
+    r1 = dpop();
+    dpush(HS[r1].read());
+    break;
+  case UART_AVAIL:
+    r1 = dpop();
+    dpush(HS[r1].available());
+    break;
+  case UART_END:
+    r1 = dpop();
+    HS[r1].flush(); HS[r1].end();
+    break;
+  case UART_BEGIN:
+    {
+      r1 = dpop();
+      RAMC baud = dpop();
+      RAMC rx  = dpop();
+      RAMC tx  = dpop();
+      HS[r1].begin(baud, SERIAL_8N1, rx, tx);
+    }
+    break;
+  case SPI_BEGIN:
+    {
+      RAMC clkpin = dpop();
+      RAMC misopin = dpop();
+      RAMC mosipin = dpop();
+      SPI.begin(clkpin,misopin,mosipin);
+      spiclass->begin();
+    }
+    break;
+  case SPI_BEGIN_TRANS:
+    {
+      RAMC speed = dpop();
+      RAMC bitorder = dpop();
+      RAMC mode = dpop();
+      RAMC cspin = dpop();
+      SPI.beginTransaction(SPISettings(((unsigned long)speed), bitorder, mode));
+      digitalWrite(cspin, LOW);
+    }
+    break;
+  case SPI_WRITE:
+    SPI.transfer(dpop());
+    break;
+  case SPI_READ:
+    dpush(SPI.transfer(0));
+    break;
+  case SPI_END_TRANS:
+    digitalWrite(dpop(), HIGH);
+    SPI.endTransaction();
+    break;
+  case UF_MS:		/* milliseconds */
+    {
+      dpush(millis());
+    }
+    break;
+  case UF_EMIT:			/* emit */
+    txc(dpop()&0xff);
+    break;
+  case UF_KEY:			/* key */
+    dpush((CELL)rxc());
+    break;
+  case UF_READB:
+    break;
+  case UF_WRITEB:
+
+    break;
+    }
+  return U_OK;
+}
 
 /* A static variable for holding the line. */
 static char line_read[128];
@@ -128,73 +235,6 @@ void console() {
   }
 }
 
-SPIClass *spiclass = &SPI;
-
-tbforth_stat c_handle(void) {
-  RAMC r1 = dpop();
-
-  switch(r1) {
-  case LOAD_ARDUINO_WORDS:
-    load_arduino_words ();
-    break;
-  case GPIO_MODE:
-    pinMode(dpop(),dpop());
-    break;
-  case GPIO_READ:
-    dpush(digitalRead(dpop()));
-    break;
-  case GPIO_WRITE:
-    digitalWrite(dpop(), dpop());
-    break;
-  case SPI_BEGIN:
-    {
-      RAMC clkpin = dpop();
-      RAMC misopin = dpop();
-      RAMC mosipin = dpop();
-      SPI.begin(clkpin,misopin,mosipin);
-      spiclass->begin();
-      break;
-    }
-  case SPI_BEGIN_TRANS:
-    {
-      RAMC speed = dpop();
-      RAMC bitorder = dpop();
-      RAMC mode = dpop();
-      RAMC cspin = dpop();
-      SPI.beginTransaction(SPISettings(((unsigned long)speed), bitorder, mode));
-      digitalWrite(cspin, LOW);
-      break;
-    }
-  case SPI_WRITE:
-    SPI.transfer(dpop());
-    break;
-  case SPI_READ:
-    dpush(SPI.transfer(0));
-    break;
-  case SPI_END_TRANS:
-    digitalWrite(dpop(), HIGH);
-    SPI.endTransaction();
-    break;
-  case UF_MS:		/* milliseconds */
-    {
-      dpush(millis());
-    }
-    break;
-  case UF_EMIT:			/* emit */
-    txc(dpop()&0xff);
-    break;
-  case UF_KEY:			/* key */
-    dpush((CELL)rxc());
-    break;
-  case UF_READB:
-    break;
-  case UF_WRITEB:
-
-    break;
-    }
-  return U_OK;
-}
-
 struct dict  *dict = &flashdict;
 
 void setup () {
@@ -205,7 +245,7 @@ void loop() {
   tbforth_init();
 
   tbforth_interpret("init");
-  tbforth_cdef("init-arduino", LOAD_ARDUINO_WORDS);
+  tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
   tbforth_interpret("cr memory cr");
   console();
 }
