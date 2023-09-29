@@ -27,6 +27,8 @@ Something to play with or gawk at how wrong it feels..
 
 ## Details
 
+I'm gonna use the term POSIX below, but you can subsitute Linux, MacOSX, OpenBSD, etc...
+
 Toolboxforth is a FORTH implemented in 1 C file (just include "toolboxforth.h" for
 easy inclusion into microcontroller projects).
 It compiles so fast, why bother making it a separate C file or library???
@@ -67,10 +69,10 @@ with core.f and util.f.
 As opinionated as this FORTH implementation may be, it has served me well (in actual
 shippable embeded products!) since 2009.
 
-The "posix" (e.g. Linux, OpenBSD, etc) build is really meant to help bootstrap the
+The "POSIX" (e.g. Linux, OpenBSD, etc) build is really meant to help bootstrap the
 microcontroller build and to test out apps before dropping down to a microcontroller.
 
-For example: You use the posix build to generate a dictionary dump that can be
+For example: You use the POSIX build to generate a dictionary dump that can be
 simply included for the microcontroller (currently Arduino) build.
 
 Look at the Makefile for direction... You currently need Arduino IDE to build the
@@ -79,7 +81,7 @@ to the subdir.
 
 Right now, only ESP32 is supported..and minimally...more to follow.
 
-You will need libreadline for the posix build...
+You will need libreadline for the POSIX build...
 
 This repo is mainly for my own "backup" and for the morbidly curious...
 as it is moving/evolving rapidly.
