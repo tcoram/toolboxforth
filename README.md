@@ -1,5 +1,3 @@
-
-
 Warning: Here be dragons...
 
 Under active/frantic development...
@@ -34,6 +32,14 @@ it is used to do some low level manipulation, but often C code is used instead t
 be faster.
 For example, you should be able to walk the dictionary and mess with it (see the definition
 for "word" in util.f for a walking example.
+
+For a destructive example, the following (from util.f) implements a "forget" that will
+erase words down to a "marker".  See util.f for an example using a marker called TEST
+
+```
+: mark ( <marker> ) create ;
+: forget-to-marker ( <marker> ) next-word dup (find&) lwa dict! (find) exec _here dict! ;
+```
 
 As opinionated as this FORTH implementation may be, it has served me well (in actual
 shippable embeded products!) since 2009.

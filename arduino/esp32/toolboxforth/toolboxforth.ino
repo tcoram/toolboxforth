@@ -29,6 +29,7 @@ void tbforth_cdef (char* name, int val) {
 }
 
 void load_esp32_words () {
+  tbforth_interpret("mark ESP32");
   tbforth_cdef("gpio-mode", GPIO_MODE);
   tbforth_cdef("gpio-read", GPIO_READ);
   tbforth_cdef("gpio-write", GPIO_WRITE);

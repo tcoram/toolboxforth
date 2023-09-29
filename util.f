@@ -139,10 +139,6 @@
     ."  cells" cr ;
 
 
-\ A more verbose include (help track memory usage).
-\
-\ : include 24 cf memory cr ;
-
 
 \ From word definition addres ('&) return the code address.
 \
@@ -183,6 +179,13 @@ variable _cc			\ keep track of # of characters on a line
 : is-immediate? ( addr -- addr flag)
     dup 1+ 128 and ;
 
+\ Place a marker
+\ Forget up to marker
+\
+: mark ( <marker> ) create ;
+: forget-to-marker ( <marker> ) next-word dup (find&) lwa dict! (find) exec _here dict! ;
+
+mark TESTS
 : test-do  1000000 0 do i drop loop ;
 : test-for  1000000 for r@ drop next ;
 
@@ -194,3 +197,6 @@ variable _cc			\ keep track of # of characters on a line
   ['] test-do time-it 
   ." testing for .. next: "
   ['] test-for time-it ;
+
+mark USER-WORDS
+
