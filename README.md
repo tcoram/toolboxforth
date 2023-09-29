@@ -16,10 +16,15 @@ MCUs (like ESP32, Cortex-M[0-4] and POSIX compliant operating systems).
 * Portable. Just need C. Don't even need a filesystem. MCU dictionaries can be bootraped from POSIX build generated header file.
 * 16 and 32 bit MCU friendly. Orignally started life on an MSP430... Tune as you see fit.
 * FORTH "macros" and compilation via [compile], immediate and postpone. Rewrite the compiler on the fly!
-* Tail cal optimized recursion.
+* Tail call optimized recursion.
 * Hackable. Everything is hackable. In fact, almost everything is hackable from FORTH itself.
+* Inspired by the dozens of FORTHs I've used over the years, but it is it's own thing. Don't expect any standards compliance.
 * Ugly. Yeah, this needs not only code refactoring, but conceptual refactoring.
 * Stable. Yeah I've shipped stuff using it's prior incarnation as "uforth"
+* Constant refactoring: I'm trying to balance making it:
+  * Minimal. Never quite as minimal as ColorForth or ArrayForth, but..
+  * Fast. Coding essential frequently called words in C
+  * Flexible. Defining as much FORTH in FORTH as I can.
 
 Is it for you? Probably not... but if you think so, here it is...
 
