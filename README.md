@@ -27,6 +27,14 @@ It has the concept of "tasks", but that code isn't completed yet...
 This C code is gnarly, but defines just enough FORTH to bootstrap a more usable FORTH.
 See *.f files for more insight into this opinionated implementation...
 
+The FORTH code has direct (via indexing) access to the critical RAM and dictionary
+structures/pointers in the C code via @ and dict@ respectively. Take a look at core.f.
+You can do some interesting stuff (and a lot crashing) by playing with that. Sometimes
+it is used to do some low level manipulation, but often C code is used instead to
+be faster.
+For example, you should be able to walk the dictionary and mess with it (see the definition
+for "word" in util.f for a walking example.
+
 As opinionated as this FORTH implementation may be, it has served me well (in actual
 shippable embeded products!) since 2009.
 
