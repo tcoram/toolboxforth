@@ -54,18 +54,17 @@ See *.f files for more insight into this opinionated implementation...
 
 The FORTH code has direct (via indexing) access to the critical RAM and dictionary
 structures/pointers in the C code via @ and dict@ respectively. Take a look at core.f.
-You can do some interesting stuff (and a lot crashing) by playing with that. Sometimes
-it is used to do some low level manipulation, but often C code is used instead to
-be faster.
-For example, you should be able to walk the dictionary and mess with it (see the definition
-for "words" in util.f for a walking example.
+You can do some interesting stuff (and a lot crashing) by playing with that. 
 
-For a destructive example, the following (from util.f) implements a "forget" that will
+For example, you should be able to walk the dictionary and mess with it (see the definition
+for "words" in util.f for a dictionary reading example.
+
+For a more destructive example, the following (from util.f) implements a "forget" that will
 erase words down to a "marker".  See util.f for an example using a marker called TEST
 
 ```
-: mark ( <marker> ) create ;
-: forget-to-marker ( <marker> ) next-word dup (find&) lwa dict! (find) exec _here dict! ;
+: mark ( <name> ) create ;
+: forget-to-marker ( <name> ) next-word dup (find&) lwa dict! (find) exec _here dict! ;
 ```
 
 Yeah, that's gnarly. No documentation yet, but the best way to explore is to start
