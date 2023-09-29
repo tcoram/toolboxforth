@@ -183,7 +183,8 @@ variable _cc			\ keep track of # of characters on a line
 \ Forget up to marker
 \
 : mark ( <marker> ) create ;
-: forget-to-marker ( <marker> ) next-word dup (find&) lwa dict! (find) exec _here dict! ;
+: forget-to-marker ( <marker> ) next-word dup (find&)
+		   dup if lwa dict! (find) exec _here dict! else drop  then drop ;
 
 mark TESTS
 : test-do  1000000 0 do i drop loop ;

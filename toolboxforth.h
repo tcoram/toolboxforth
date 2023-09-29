@@ -859,6 +859,7 @@ CELL find_word(char* s, uint8_t slen, RAMC* addr, bool *immediate, char *primiti
     }
     fidx = prev;
   }
+  if (addr != 0) *addr = 0 ;
   return 0;
 }
 
