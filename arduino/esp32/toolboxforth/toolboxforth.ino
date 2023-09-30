@@ -33,11 +33,11 @@ void load_esp32_words () {
   tbforth_cdef("gpio-mode", GPIO_MODE);
   tbforth_cdef("gpio-read", GPIO_READ);
   tbforth_cdef("gpio-write", GPIO_WRITE);
-  tbforth_cdef("spi-begin", SPI_BEGIN);
-  tbforth_cdef("spi-begin-trans", SPI_BEGIN_TRANS);
+  tbforth_cdef("spi-config", SPI_BEGIN);
+  tbforth_cdef("spi-begin", SPI_BEGIN_TRANS);
   tbforth_cdef("spi-write", SPI_WRITE);
   tbforth_cdef("spi-read", SPI_READ);
-  tbforth_cdef("spi-end-trans", SPI_END_TRANS);
+  tbforth_cdef("spi-end", SPI_END_TRANS);
   tbforth_cdef("uart-begin", UART_BEGIN);
   tbforth_cdef("uart-end", UART_END);
   tbforth_cdef("uart-avail", UART_AVAIL);
@@ -46,7 +46,6 @@ void load_esp32_words () {
 }
 
 
-SPIClass *spiclass = &SPI;
 
 #if defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32C3_DEV)
 HardwareSerial Serial2(1);
@@ -100,7 +99,6 @@ tbforth_stat c_handle(void) {
       RAMC misopin = dpop();
       RAMC mosipin = dpop();
       SPI.begin(clkpin,misopin,mosipin);
-      spiclass->begin();
     }
     break;
   case SPI_BEGIN_TRANS:
@@ -178,6 +176,7 @@ char * rl_gets () {
       line_read[0] = '\0';
       return line_read;
       break;
+    case '\n':
     case '\r':
       line_read[i] = '\0';
       txc('\n');
