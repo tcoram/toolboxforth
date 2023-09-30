@@ -10,7 +10,7 @@ enum {
   GPIO_MODE,
   GPIO_READ,
   GPIO_WRITE,
-  SPI_BEGIN,
+  SPI_CFG,
   SPI_BEGIN_TRANS,
   SPI_WRITE,
   SPI_READ,
@@ -22,18 +22,13 @@ enum {
   UART_WRITE
 };
   
-void tbforth_cdef (char* name, int val) {
-  char n[80];
-  snprintf(n, 80, ": %s %d cf ;", name, val);
-  tbforth_interpret(n);
-}
 
 void load_esp32_words () {
   tbforth_interpret("mark ESP32");
   tbforth_cdef("gpio-mode", GPIO_MODE);
   tbforth_cdef("gpio-read", GPIO_READ);
   tbforth_cdef("gpio-write", GPIO_WRITE);
-  tbforth_cdef("spi-config", SPI_BEGIN);
+  tbforth_cdef("spi-config", SPI_CFG);
   tbforth_cdef("spi-begin", SPI_BEGIN_TRANS);
   tbforth_cdef("spi-write", SPI_WRITE);
   tbforth_cdef("spi-read", SPI_READ);
@@ -93,7 +88,7 @@ tbforth_stat c_handle(void) {
       HS[r1].begin(baud, SERIAL_8N1, rx, tx);
     }
     break;
-  case SPI_BEGIN:
+  case SPI_CFG:
     {
       RAMC clkpin = dpop();
       RAMC misopin = dpop();
@@ -121,23 +116,18 @@ tbforth_stat c_handle(void) {
     digitalWrite(dpop(), HIGH);
     SPI.endTransaction();
     break;
-  case UF_MS:		/* milliseconds */
+  case MS:		/* milliseconds */
     {
       dpush(millis());
     }
     break;
-  case UF_EMIT:			/* emit */
+  case EMIT:			/* emit */
     txc(dpop()&0xff);
     break;
-  case UF_KEY:			/* key */
+  case KEY:			/* key */
     dpush((CELL)rxc());
     break;
-  case UF_READB:
-    break;
-  case UF_WRITEB:
-
-    break;
-    }
+  }
   return U_OK;
 }
 
