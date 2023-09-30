@@ -34,6 +34,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define min(a,b) ((a < b) ? a : b)
 
@@ -205,13 +206,9 @@ extern void tbforth_load_prims(void);
 extern void tbforth_abort(void);
 extern tbforth_stat tbforth_interpret(char*);
 extern tbforth_stat c_handle(void);
+extern void tbforth_cdef (char*, int);
 
-/*
- C extension hooks.
-*/
-void c_ext_init(void);
-void c_ext_create_cmds(void);
-tbforth_stat c_ext_handle_cmds(CELL n);
+tbforth_stat interpret_tib();
 
 CELL *tbforth_dict;			/* treat dict struct like array */
 abort_t _tbforth_abort_request;	/* for emergency aborts */
@@ -261,12 +258,11 @@ enum {
   LAST_PRIMITIVE
 };
 
-// Some useful OS/Platform extensions... You may define...
+// Some useful OS/Platform extensions...you can handle in c_handle() or not...
 //
-enum { EMIT=1, KEY, SAVE_IMAGE, INCLUDE, OPEN, CLOSE, READB, WRITEB, MS};
+enum { EMIT=1, KEY, SAVE_IMAGE, INCLUDE, OPEN, CLOSE,
+  READB, WRITEB, MS};
 
-// Helper to load the extensions...
-//
 void tbforth_cdef (char* name, int val) {
   char n[80];
   snprintf(n, 80, ": %s %d cf ;", name, val);
@@ -487,6 +483,7 @@ void tbforth_load_prims(void) {
   store_prim("here", HERE);
   store_prim("substr", SUBSTR);
   store_prim("n>str", NUM_TO_STR);
+  store_prim("interpret", INTERP);
   store_prim("<0", LESS_THAN_ZERO);
 }
 
@@ -824,6 +821,9 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	dpush(PAD_ADDR);
       }
       break;
+    case INTERP:
+      interpret_tib();
+      break;
     case MAKE_TASK:
       r1 = dpop();
       r2 = dpop();
@@ -870,16 +870,12 @@ CELL find_word(char* s, uint8_t slen, RAMC* addr, bool *immediate, char *primiti
   return 0;
 }
 
-tbforth_stat tbforth_interpret(char *str) {
+tbforth_stat interpret_tib() {
   tbforth_stat stat;
   char *word;
   CELL wd_idx;
   bool immediate = 0;
   char primitive = 0;
-
-  CLEAR_TIB();
-  tbforth_iram->tibclen = min(TIB_SIZE, strlen(str)+1);
-  memcpy(tbforth_iram->tib, str, tbforth_iram->tibclen);
   while(*(word = tbforth_next_word()) != 0) {
     wd_idx = find_word(word,tbforth_iram->tibwordlen,0,&immediate,&primitive);
     switch (tbforth_iram->compiling) {
@@ -955,5 +951,11 @@ tbforth_stat tbforth_interpret(char *str) {
   return U_OK;
 }
 
+tbforth_stat tbforth_interpret(char *str) {
+  CLEAR_TIB();
+  tbforth_iram->tibclen = min(TIB_SIZE, strlen(str)+1);
+  memcpy(tbforth_iram->tib, str, tbforth_iram->tibclen);
+  return interpret_tib();
+}
 
 #endif

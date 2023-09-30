@@ -7,10 +7,9 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <sys/time.h>
-#include <stdbool.h>
 
-// #define INLINE inline
 #include "toolboxforth.h"
+
 
 FILE *OUTFP;
 
@@ -32,8 +31,7 @@ static char *line_read = (char *)NULL;
 
 /* Read a string, and return a pointer to it.
    Returns NULL on EOF. */
-char *
-rl_gets ()
+char *rl_gets ()
 {
   /* If the buffer has already been allocated,
      return the memory to the free pool. */
