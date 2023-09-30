@@ -29,15 +29,15 @@ void load_esp32_words () {
   tbforth_cdef("gpio-read", GPIO_READ);
   tbforth_cdef("gpio-write", GPIO_WRITE);
   tbforth_cdef("spi-config", SPI_CFG);
-  tbforth_cdef("spi-begin", SPI_BEGIN_TRANS);
-  tbforth_cdef("spi-write", SPI_WRITE);
-  tbforth_cdef("spi-read", SPI_READ);
-  tbforth_cdef("spi-end", SPI_END_TRANS);
+  tbforth_cdef("spi{", SPI_BEGIN_TRANS);
+  tbforth_cdef("spi!", SPI_WRITE);
+  tbforth_cdef("spi@", SPI_READ);
+  tbforth_cdef("}spi", SPI_END_TRANS);
   tbforth_cdef("uart-begin", UART_BEGIN);
   tbforth_cdef("uart-end", UART_END);
-  tbforth_cdef("uart-avail", UART_AVAIL);
-  tbforth_cdef("uart-read", UART_READ);
-  tbforth_cdef("uart-write", UART_WRITE);
+  tbforth_cdef("uart?", UART_AVAIL);
+  tbforth_cdef("uart@", UART_READ);
+  tbforth_cdef("uart!", UART_WRITE);
 }
 
 
@@ -102,6 +102,8 @@ tbforth_stat c_handle(void) {
       RAMC bitorder = dpop();
       RAMC mode = dpop();
       RAMC cspin = dpop();
+      pinMode(cspin, OUTPUT);
+      digitalWrite(cspin, HIGH);
       SPI.beginTransaction(SPISettings(((unsigned long)speed), bitorder, mode));
       digitalWrite(cspin, LOW);
     }
