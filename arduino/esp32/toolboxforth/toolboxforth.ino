@@ -1,9 +1,19 @@
+// ESP32 Toolboxforth.
+//
 #include <SPI.h>
 #include <Wire.h>
 extern "C" {
 #include "toolboxforth.h"
 }
 #include "toolboxforth.img.h"
+
+#include <esp_task_wdt.h>
+
+// define if using USB_CDC for console and don't want delays when not plugged in
+//
+#define USB_CDC_NO_DELAY
+
+#define MBED_TLS
 
 enum {
   LOAD_ESP32_WORDS=100,
@@ -19,7 +29,17 @@ enum {
   UART_END,
   UART_AVAIL,
   UART_READ,
-  UART_WRITE
+  UART_WRITE,
+  WDT_CONFIG,
+  WDT_RESET,
+  DELAY,
+  GPIO_WAKE,
+  ENCRYPT,
+  DECRYPT,
+  ENCODE64,
+  DECODE64,
+  MAC,
+  SLEEP
 };
   
 
@@ -29,17 +49,45 @@ void load_esp32_words () {
   tbforth_cdef("gpio-read", GPIO_READ);
   tbforth_cdef("gpio-write", GPIO_WRITE);
   tbforth_cdef("spi-config", SPI_CFG);
-  tbforth_cdef("spi{", SPI_BEGIN_TRANS);
+  tbforth_cdef("spi\{", SPI_BEGIN_TRANS);
   tbforth_cdef("spi!", SPI_WRITE);
   tbforth_cdef("spi@", SPI_READ);
-  tbforth_cdef("}spi", SPI_END_TRANS);
+  tbforth_cdef("\}spi", SPI_END_TRANS);
   tbforth_cdef("uart-begin", UART_BEGIN);
   tbforth_cdef("uart-end", UART_END);
   tbforth_cdef("uart?", UART_AVAIL);
   tbforth_cdef("uart@", UART_READ);
   tbforth_cdef("uart!", UART_WRITE);
+  tbforth_cdef("/wdt", WDT_CONFIG);
+  tbforth_cdef("wdt-rst", WDT_RESET);
+  tbforth_cdef("delay", DELAY);
+  tbforth_cdef("sleep", SLEEP);
+  tbforth_cdef("gcm-encrypt", ENCRYPT);
+  tbforth_cdef("gcm-decrypt", DECRYPT);
+  tbforth_cdef("encode64", ENCODE64);
+  tbforth_cdef("decode64", DECODE64);
+  tbforth_cdef("mac", MAC);
 }
 
+#ifdef MBED_TLS
+#include "mbedtls/gcm.h"
+#include "mbedtls/base64.h"
+mbedtls_gcm_context aes;
+
+void encrypt (int dir, uint8_t *key, uint8_t *iv, uint8_t *in, uint8_t *out, int blocks) {
+  mbedtls_gcm_init( &aes );
+  mbedtls_gcm_setkey( &aes,MBEDTLS_CIPHER_ID_AES , (const unsigned char*) key, 256);
+  mbedtls_gcm_crypt_and_tag( &aes, dir ? MBEDTLS_GCM_ENCRYPT : MBEDTLS_GCM_DECRYPT,
+			     blocks*16,
+			     (const unsigned char*)iv, 96/8,
+			     NULL, 0,
+  			     (const unsigned char*)in,
+			     out,
+			     4, out+(blocks*16));
+  mbedtls_gcm_free( &aes );
+}
+
+#endif
 
 
 #if defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32C3_DEV)
@@ -118,10 +166,116 @@ tbforth_stat c_handle(void) {
     digitalWrite(dpop(), HIGH);
     SPI.endTransaction();
     break;
-  case MS:		/* milliseconds */
-    {
-      dpush(millis());
+  case WDT_CONFIG:
+    r1 = dpop();
+    if (r1 > 0) {
+      esp_task_wdt_init(r1, true);    
+      esp_task_wdt_add (NULL);
+    } else {
+      esp_task_wdt_delete (NULL);
+      esp_task_wdt_deinit();
     }
+    break;
+  case WDT_RESET:
+    esp_task_wdt_reset();
+    break;
+  case DELAY:
+    delay(dpop());
+    break;
+  case SLEEP:
+    {
+      RAMC deepsleep = dpop();
+      RAMC ms = dpop();
+      RAMC wake_on_up = dpop();
+      RAMC maskL = dpop();
+      RAMC maskH = dpop();
+      uint64_t mask = maskH << 32 | maskL;
+
+      esp_sleep_disable_wakeup_source (ESP_SLEEP_WAKEUP_ALL);
+
+      if (ms > 0)
+	esp_sleep_enable_timer_wakeup((uint64_t)ms * 1000ULL);
+	
+#ifndef ARDUINO_ESP32C3_DEV
+      //  Just for UART wakes???
+      //    gpio_sleep_set_direction(GPIO_NUM_??, GPIO_MODE_INPUT);
+      // https://github.com/espressif/arduino-esp32/issues/6976 ?
+      if (wake_on_up) {
+	esp_sleep_enable_ext1_wakeup(mask,ESP_EXT1_WAKEUP_ANY_HIGH);
+      } else {
+	esp_sleep_enable_ext1_wakeup(mask,ESP_EXT1_WAKEUP_ALL_LOW);
+      }
+#else
+      if (wake_on_up) {
+	esp_deep_sleep_enable_gpio_wakeup(mask,ESP_GPIO_WAKEUP_GPIO_HIGH);
+      } else {
+	esp_deep_sleep_enable_gpio_wakeup(mask,ESP_GPIO_WAKEUP_GPIO_LOW);
+      }
+#endif
+      if (deepsleep) {
+#ifndef ARDUINO_ESP32C3_DEV
+	gpio_deep_sleep_hold_en();
+#endif
+	esp_deep_sleep_start();
+      } else {
+	esp_light_sleep_start();
+      }
+    }
+    break;
+  case MAC:
+    {
+      uint64_t _macid = 0LL;
+      esp_efuse_mac_get_default((uint8_t*) (&_macid));
+      dpush(_macid >> 32);
+      dpush(_macid & 0xFFFFFFFF);
+    }
+    break;
+
+#ifdef MBED_TLS
+  case ENCODE64:
+    {
+      RAMC inaddr = dpop();
+      RAMC outaddr = dpop();
+      size_t olen;
+      uint8_t *in = (uint8_t*)&tbforth_ram[inaddr+1];
+      size_t inlen = tbforth_ram[inaddr];
+      uint8_t *out = (uint8_t*)&tbforth_ram[outaddr+1];
+      size_t oslen = tbforth_ram[outaddr];
+      mbedtls_base64_encode( out, oslen, &olen, in, inlen);
+      dpush(olen);
+    }
+    break;
+  case DECODE64:
+    {
+      RAMC inaddr = dpop();
+      RAMC outaddr = dpop();
+      size_t olen;
+      uint8_t *in = (uint8_t*)&tbforth_ram[inaddr+1];
+      size_t inlen = tbforth_ram[inaddr];
+      uint8_t *out = (uint8_t*)&tbforth_ram[outaddr+1];
+      size_t oslen = tbforth_ram[outaddr];
+      mbedtls_base64_decode(out, oslen, &olen, in, inlen);
+      dpush(olen);
+    }
+    break;
+  case ENCRYPT:
+  case DECRYPT:
+    {
+      RAMC inaddr = dpop();
+      RAMC outaddr = dpop();
+      RAMC blocks = dpop();
+      RAMC keyaddr = dpop();
+      RAMC ivaddr = dpop();
+      uint8_t *key = (uint8_t*)&tbforth_ram[keyaddr+1];
+      uint8_t *iv = (uint8_t*)&tbforth_ram[ivaddr+1];
+      uint8_t *in = (uint8_t*)&tbforth_ram[inaddr+1];
+      uint8_t *out = (uint8_t*)&tbforth_ram[outaddr+1];
+      encrypt (r1 == ENCRYPT, key, iv, in, out, blocks);
+    }
+    break;
+#endif
+  case MS:		/* milliseconds */
+    dpush(millis());
     break;
   case EMIT:			/* emit */
     txc(dpop()&0xff);
@@ -231,13 +385,17 @@ struct dict  *dict = &flashdict;
 
 void setup () {
   Serial.begin(115200);
+#ifdef USB_CDC_NO_DELAY
+  Serial.setTxTimeoutMs(0);
+#endif
 }
 
 void loop() {
   tbforth_init();
 
-  tbforth_interpret("init");
   tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
+  tbforth_interpret("init");
+  tbforth_interpret("init-esp32");
   tbforth_interpret("cr memory cr");
   console();
 }

@@ -23,6 +23,8 @@ mark LIS3DH
 
 : lis-id ( -- n)  $0f lis-rd ;
 
+: lis-xyz ( -- x x y y z z) 6 $28 lis-rds ;
+
 : /lis
   lis-mosi lis-miso lis-clk spi-cfg
   0 $21 lis-wr 
