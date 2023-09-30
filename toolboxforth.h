@@ -261,10 +261,17 @@ enum {
   LAST_PRIMITIVE
 };
 
-// Some useful OS/Platform extensions...you can handle in c_handle() or not...
+// Some useful OS/Platform extensions... You may define...
 //
-enum { UF_EMIT=1, UF_KEY, UF_SAVE_IMAGE, UF_INCLUDE, UF_OPEN, UF_CLOSE,
-  UF_READB, UF_WRITEB, UF_MS};
+enum { EMIT=1, KEY, SAVE_IMAGE, INCLUDE, OPEN, CLOSE, READB, WRITEB, MS};
+
+// Helper to load the extensions...
+//
+void tbforth_cdef (char* name, int val) {
+  char n[80];
+  snprintf(n, 80, ": %s %d cf ;", name, val);
+  tbforth_interpret(n);
+}
 
 RAMC parse_num(char *s, uint8_t base) {
   char *p = s;

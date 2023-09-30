@@ -97,13 +97,24 @@ bool config_close(void) {
 
 void interpret_from(FILE *fp);
 
+
+void load_posix_words () {
+  tbforth_cdef("ms", MS);
+  tbforth_cdef("emit", EMIT);
+  tbforth_cdef("key", KEY);
+  tbforth_cdef("save-image", SAVE_IMAGE);
+  tbforth_cdef("include", INCLUDE);
+  tbforth_cdef("open-file", OPEN);
+  tbforth_cdef("close-file", CLOSE);
+}
+
 tbforth_stat c_handle(void) {
   RAMC r2, r1 = dpop();
   FILE *fp;
   static char buf[80*2];
 
   switch(r1) {
-  case UF_MS:		/* milliseconds */
+  case MS:		/* milliseconds */
     {
       struct timeval tv;
       gettimeofday(&tv,0);
@@ -113,13 +124,13 @@ tbforth_stat c_handle(void) {
       dpush(r2);
     }
     break;
-  case UF_EMIT:			/* emit */
+  case EMIT:			/* emit */
     txc(dpop()&0xff);
     break;
-  case UF_KEY:			/* key */
+  case KEY:			/* key */
     dpush((CELL)rxc());
     break;
-  case UF_SAVE_IMAGE:			/* save image */
+  case SAVE_IMAGE:			/* save image */
     {
       int dict_size= (dict_here())*sizeof(CELL);
       char *s = tbforth_next_word();
@@ -149,7 +160,7 @@ tbforth_stat c_handle(void) {
       fclose(fp);
     }
     break;
-  case UF_READB:
+  case READB:
     {
       char b;
       r2=dpop();
@@ -157,7 +168,7 @@ tbforth_stat c_handle(void) {
       dpush(b);
     }
     break;
-  case UF_WRITEB:
+  case WRITEB:
     {
       char b;
       r2=dpop();
@@ -165,10 +176,10 @@ tbforth_stat c_handle(void) {
       dpush(write(r2,&b,1));
     }
     break;
-  case UF_CLOSE:
+  case CLOSE:
     close(dpop());
     break;
-  case UF_OPEN:
+  case OPEN:
     {
       char *s;
       r1 = dpop();
@@ -179,7 +190,7 @@ tbforth_stat c_handle(void) {
       dpush(open(buf, r1));
     }
     break;
-  case UF_INCLUDE:			/* include */
+  case INCLUDE:			/* include */
     {
       char *s = tbforth_next_word();
       strncpy(buf,s, tbforth_iram->tibwordlen+1);
@@ -265,17 +276,15 @@ int main(int argc, char* argv[]) {
 
 
   tbforth_init();
+
+
   OUTFP = stdout;
   if (argc < 2) {
     FILE *fp;
     tbforth_load_prims();
+    load_posix_words();
     printf("   Loading ./core.f\n");
     fp = fopen("./core.f", "r");
-    if (fp != NULL) 
-      interpret_from(fp);
-    fclose(fp);
-    printf("   Loading ./posix.f\n");
-    fp = fopen("./posix.f", "r");
     if (fp != NULL) 
       interpret_from(fp);
     fclose(fp);
