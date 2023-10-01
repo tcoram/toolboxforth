@@ -12,8 +12,24 @@ extern "C" {
 // define if using USB_CDC for console and don't want delays when not plugged in
 //
 #define USB_CDC_NO_DELAY
-
+// #define HAVE_FS
+#define FATFS
 #define MBED_TLS
+
+#ifdef HAVE_FS
+#ifdef FATFS
+#include <FFat.h>
+#define FLASH_FS FFat
+#else
+#ifdef LITTLEFS
+#include <LittleFS.h>
+#define FLASH_FS LittleFS
+#else
+#include <SPIFFS.h>
+#define FLASH_FS SPIFFS
+#endif
+#endif
+#endif
 
 enum {
   LOAD_ESP32_WORDS=100,
@@ -68,6 +84,9 @@ void load_esp32_words () {
   tbforth_cdef("decode64", DECODE64);
   tbforth_cdef("mac", MAC);
 }
+
+
+
 
 #ifdef MBED_TLS
 #include "mbedtls/gcm.h"
@@ -283,6 +302,23 @@ tbforth_stat c_handle(void) {
   case KEY:			/* key */
     dpush((CELL)rxc());
     break;
+#ifdef HAVE_FS
+  case SAVE_IMAGE:			/* save image */
+    {
+      FLASH_FS.begin(true);
+      File fp;
+      uint32_t dict_size= (dict_here())*sizeof(CELL);
+      fp = FLASH_FS.open("/TBFORTH.IMG", FILE_WRITE);
+      fp.write(DICT_VERSION);
+      fp.write((dict_size >> 24) & 0xFF);
+      fp.write((dict_size >> 16) & 0xFF);
+      fp.write((dict_size >> 8) & 0xFF);
+      fp.write(dict_size & 0xFF);
+      fp.write((uint8_t*)dict, dict_size);
+      fp.close();
+    }
+    break;
+#endif
   }
   return U_OK;
 }
@@ -352,7 +388,7 @@ void console() {
     stat = tbforth_interpret(line);
     switch(stat) {
     case E_NOT_A_WORD:
-      txs0("Huh? >>> ");
+      txs0("\r\nHuh? >>> ");
       txs(&tbforth_iram->tib[tbforth_iram->tibwordidx],tbforth_iram->tibwordlen);
       txs0(" <<< ");
       txs(&tbforth_iram->tib[tbforth_iram->tibwordidx + tbforth_iram->tibwordlen],
@@ -391,11 +427,29 @@ void setup () {
 }
 
 void loop() {
+#ifdef HAVE_FS
+  if (FLASH_FS.begin(true) && FLASH_FS.exists("/TBFORTH.IMG")) {
+    txs0("trying to read TBFORTH.IMG");
+    File fp = FLASH_FS.open("/TBFORTH.IMG");
+    if (fp && fp.read() == DICT_VERSION) {
+      uint32_t dsize = fp.read() << 24 | fp.read() << 16 | fp.read() << 8 | fp.read();
+      fp.read((uint8_t*)dict, dsize);
+      fp.close();
+      tbforth_init();
+    } else {
+      txs0("Can't load /TBFORTH.IMG...");
+      tbforth_init();
+      tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
+      tbforth_interpret("init-esp32");
+    }
+  }
+#else
   tbforth_init();
-
   tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
-  tbforth_interpret("init");
   tbforth_interpret("init-esp32");
+#endif
+
+  tbforth_interpret("init");
   tbforth_interpret("cr memory cr");
   console();
 }
