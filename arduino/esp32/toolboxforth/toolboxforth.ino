@@ -451,6 +451,7 @@ void loop() {
 
   tbforth_interpret("init");
   tbforth_interpret("cr memory cr");
+  tbforth_interpret("quit");
   console();
 }
 

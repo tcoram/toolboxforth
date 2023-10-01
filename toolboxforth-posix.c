@@ -286,6 +286,11 @@ int main(int argc, char* argv[]) {
     if (fp != NULL) 
       interpret_from(fp);
     fclose(fp);
+    printf("   Loading ./console.f\n");
+    fp = fopen("./console.f", "r");
+    if (fp != NULL) 
+      interpret_from(fp);
+    fclose(fp);
   } else {
     if (config_open_r(argv[1])) {
       if (!config_read(dict))
@@ -293,6 +298,7 @@ int main(int argc, char* argv[]) {
       config_close();
     }
   }
+  tbforth_interpret ("mark USER-WORDS");
   tbforth_interpret("init");
   interpret_from(stdin);
 
