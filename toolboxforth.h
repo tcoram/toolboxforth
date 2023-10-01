@@ -41,7 +41,7 @@
 /* Configuration */
 
 #define TBFORTH_VERSION "3.0"
-#define DICT_VERSION 8
+#define DICT_VERSION 9
 
 // ------------------- START: Stuff to tweak...
 
@@ -113,10 +113,10 @@ struct tbforth_iram {
   RAMC total_ram;		/* Total ram available */
   RAMC compiling_word;	 /* 0=none */
   RAMC curtask_idx;
-  RAMC tibidx;
-  RAMC tibclen;
+  RAMC tibidx;		      /* current index into buffer */
   RAMC tibwordidx;		/* point to current word in inbufptr */
   RAMC tibwordlen;	/* length of current word in inbufptr */
+  RAMC tibclen;		      /* size of data in the tib buffer */
   char tib[TIB_SIZE];		/* input buffer for interpreter */
 };
 
@@ -151,7 +151,6 @@ typedef enum { NO_ABORT=0, ABORT_CTRL_C=1, ABORT_NAW=2,
 	       ABORT_ILLEGAL=3, ABORT_WORD=4 } abort_t;
 
 extern abort_t _tbforth_abort_request;
-
 #define tbforth_abort_request(why) _tbforth_abort_request = why
 #define tbforth_aborting() (_tbforth_abort_request != NO_ABORT)
 #define tbforth_abort_reason() _tbforth_abort_request
@@ -822,7 +821,9 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       }
       break;
     case INTERP:
-      interpret_tib();
+      {
+	dpush(interpret_tib());
+      }
       break;
     case MAKE_TASK:
       r1 = dpop();

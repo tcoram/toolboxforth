@@ -3,7 +3,7 @@ CFLAGS=-Wall -g
 LDFLAGS= -g -lm 
 
 
-toolboxforth-posix: toolboxforth-posix.o toolboxforth.h
+toolboxforth-posix: toolboxforth-posix.o
 	$(CC) $(CFLAGS) -o toolboxforth-posix toolboxforth-posix.o $(LDFLAGS) -lreadline -lm
 	echo "save-image toolboxforth.img" | ./toolboxforth-posix
 
