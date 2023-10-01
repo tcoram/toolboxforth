@@ -6,7 +6,7 @@ A throwback to an 80s style of roll-your-own-even-if-you-shouldn't language desi
 
 This is "toolboxforth".  It's a FORTH implementation that has been in my "toolbox"
 since 2009 (under the name uForth). Back then, I used it primarily on an MSP430. It targets
-MCUs (like ESP32, Cortex-M[0-4] and POSIX compliant operating systems).
+MCUs (like ESP32 and POSIX compliant operating systems).
 
 ## Features
 
@@ -77,10 +77,10 @@ The "POSIX" (e.g. Linux, OpenBSD, etc) build is really meant to help bootstrap t
 microcontroller build and to test out apps before dropping down to a microcontroller.
 
 For example: You use the POSIX build to generate a dictionary dump that can be
-simply included for the microcontroller (currently Arduino) build.
+simply included for the microcontroller (currently Arduino ESP32) build.
 
 Look at the Makefile for direction... You currently need Arduino IDE to build the
-Arduino code... and the Makefile (simply, naively) copies the needed header files
+Arduino ESP32 code... and the Makefile (simply, naively) copies the needed header files
 to the subdir.
 
 Right now, only ESP32 is supported..and minimally...more to follow.
