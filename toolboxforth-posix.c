@@ -134,11 +134,6 @@ tbforth_stat c_handle(void) {
       char *s = tbforth_next_word();
       strncpy(buf, s, tbforth_iram->tibwordlen+1);
       buf[(tbforth_iram->tibwordlen)+1] = '\0';
-      printf("Saving raw dictionary into %s\n", buf);
-      fp = fopen(buf, "w+");
-      fprintf(fp,"%ld\n",(int)(dict_here())*sizeof(CELL));
-      fwrite(dict, dict_size,1,fp);
-      fclose(fp);
 
       char *hfile = malloc(strlen(buf) + 3);
       strcpy(hfile,buf);

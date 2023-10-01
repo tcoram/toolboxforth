@@ -64,6 +64,12 @@
 : T ( -- n) dsa sidx + 1- ;
 : R ( -- n) dsa ridx + 1+ ;
 
+: tibidx iram 4 + ;
+: tibwordidx iram 5 + ;
+: tibwordlen iram 6 + ;
+: tib iram 7 + ;		( starts with cnt... )
+: tibbuf iram 8 + ;
+
 \ Works but much slower than builtin C version
 \ : rpick  dsa ridx + 1+ 1+ + @ ;
 
