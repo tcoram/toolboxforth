@@ -96,9 +96,6 @@
 typedef int32_t RAMC;
 
 
-typedef enum { U_OK=0, E_NOT_A_WORD, E_STACK_UNDERFLOW, E_RSTACK_OVERFLOW,
-	       E_DSTACK_OVERFLOW, E_ABORT, E_EXIT } tbforth_stat;
-
 #define BYTES_PER_CELL sizeof(CELL)
 
 /*
@@ -108,8 +105,11 @@ typedef enum { U_OK=0, E_NOT_A_WORD, E_STACK_UNDERFLOW, E_RSTACK_OVERFLOW,
 /*
   iram. 
 */
+typedef enum { U_OK=0, COMPILING, E_NOT_A_WORD, E_STACK_UNDERFLOW, E_RSTACK_OVERFLOW,
+	       E_DSTACK_OVERFLOW, E_ABORT, E_EXIT } tbforth_stat;
+
 struct tbforth_iram {
-  RAMC compiling;		/* 0=interpreting, 1=colondef, 2=compiling */
+  RAMC state;		/* 0=interpreting .. */
   RAMC total_ram;		/* Total ram available */
   RAMC compiling_word;	 /* 0=none */
   RAMC curtask_idx;
@@ -247,7 +247,7 @@ enum {
   LIT=1, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
   HERE, INCR_HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
-  OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, DROP, DUP,  SWAP, OVER, ROT,
+  OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN_ZERO, MAKE_TASK, SELECT_TASK,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
@@ -363,10 +363,10 @@ char* tbforth_next_word (void) {
 }
 
 void tbforth_abort(void) {
-  if (tbforth_iram->compiling) {
+  if (tbforth_iram->state == COMPILING) {
     dict_append(ABORT);
   }
-  tbforth_iram->compiling = 0;
+  tbforth_iram->state = 0;
   tbforth_abort_clr();
   tbforth_uram->ridx = tbforth_uram->rsize + tbforth_uram->dsize;
   tbforth_uram->didx = -1;
@@ -404,7 +404,7 @@ void tbforth_select_task (CELL uram) {
 void tbforth_init(void) {
   tbforth_dict = (CELL*)dict;
   tbforth_iram = (struct tbforth_iram*) tbforth_ram;
-  tbforth_iram->compiling = 0;
+  tbforth_iram->state = 0;
   tbforth_iram->total_ram = TOTAL_RAM_CELLS;
 
   tbforth_make_task(0,TASK0_DS_CELLS,TASK0_RS_CELLS,TASK0_URAM_CELLS);
@@ -455,6 +455,7 @@ void tbforth_load_prims(void) {
   store_prim("*", MULT);
   store_prim("/", DIV);
   store_prim("0=", EQ_ZERO);
+  store_prim("=", EQ);
   store_prim("lit", LIT);
   store_prim("dlit", DLIT);
   store_prim(">r", RPUSH);
@@ -635,6 +636,10 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case EQ_ZERO:
       dtop() = (dtop() == 0);
       break;
+    case EQ:
+      r1 = dpop(); r2 = dpop();
+      dpush (r1 == r2);
+      break;
     case RPUSH:
       rpush(dpop());
       break;
@@ -703,7 +708,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush(PAD_ADDR);
       break;
     case COMMA_STRING:
-      if (tbforth_iram->compiling > 0) {
+      if (tbforth_iram->state == COMPILING) {
 	dict_append(LIT);
 	dict_append(dict_here()+4); /* address of counted string */
 
@@ -729,7 +734,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	dict_append(r2);
       } while (b != 0 && b!= '"');
       dict_write(rpop(),r1);
-      if (tbforth_iram->compiling > 0) {
+      if (tbforth_iram->state == COMPILING) {
 	dict_write(rpop(),dict_here());	/* jump over string */
       }
       break;
@@ -741,7 +746,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush(VAR_ALLOT_1());
       break;
     case DEF:
-      tbforth_iram->compiling = 1;
+      tbforth_iram->state = COMPILING;
     case _CREATE:
       dict_start_def();
       tbforth_next_word();
@@ -821,9 +826,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       }
       break;
     case INTERP:
-      {
-	dpush(interpret_tib());
-      }
+      dpush (interpret_tib());
       break;
     case MAKE_TASK:
       r1 = dpop();
@@ -879,7 +882,7 @@ tbforth_stat interpret_tib() {
   char primitive = 0;
   while(*(word = tbforth_next_word()) != 0) {
     wd_idx = find_word(word,tbforth_iram->tibwordlen,0,&immediate,&primitive);
-    switch (tbforth_iram->compiling) {
+    switch (tbforth_iram->state) {
     case 0:			/* interpret mode */
       if (wd_idx == 0) {	/* number or trash */
 	RAMC num = parse_num(word,tbforth_uram->base);
@@ -898,7 +901,7 @@ tbforth_stat interpret_tib() {
 	}
       }
       break;
-    case 1:			/* in the middle of a colon def */
+    case COMPILING:			/* in the middle of a colon def */
       if (wd_idx == 0) {	/* number or trash */
 	RAMC num = parse_num(word,tbforth_uram->base);
 	if (num == 0 && word[0] != '0') {
@@ -911,7 +914,7 @@ tbforth_stat interpret_tib() {
 	dict_append(((uint32_t)num)>>16);
 	dict_append(((uint16_t)num)&0xffff);
       }	else if (word[0] == ';') { /* exit from a colon def */
-	tbforth_iram->compiling = 0;
+	tbforth_iram->state = 0;
 	dict_append(EXIT);
 	dict_end_def();
 	tbforth_iram->compiling_word = 0;

@@ -49,7 +49,9 @@
 \ of memory (structure members).  Some may not be very useful (especially return stack stuf)
 \
 : iram ram 0 + ;
-: compiling? ( -- flag) 0 iram + @  ;
+: state? ( -- flag) 0 iram + @  ;
+: reset-state ( -- ) 0 0 iram + !  ;
+: compiling? ( -- flag) state? 1 = ;
 : ramsize ( -- flag) 1 iram + @  ;
 : compiling-word-addr ( -- addr) 2 iram + @ ;
 
@@ -117,7 +119,7 @@
 : mod ( y x  -- n)
     over swap ( y y x) dup >r  ( y y x)
     / r> * - ;
-: = ( a b -- flag) - 0= ;
+\ : = ( a b -- flag) - 0= ;
 
 : ' ( -- addr) next-word (find) ;
 : ['] next-word (find)  1 ,  , ; immediate \ hack: LIT *is* 1
