@@ -4,8 +4,8 @@
 #include <Wire.h>
 
 extern "C" {
-#include "toolboxforth.h"
-#include "toolboxforth.img.h"
+#include "tbforth.h"
+#include "tbforth.img.h"
 }
 
 #include <esp_task_wdt.h>

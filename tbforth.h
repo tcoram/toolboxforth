@@ -17,6 +17,8 @@
    Note: A Dictionary CELL is always 2 bytes!
 */
 #define MAX_DICT_CELLS 		(65535)
+
+
 /*
  Total user RAM (each ram cell is 4 bytes)
 */
