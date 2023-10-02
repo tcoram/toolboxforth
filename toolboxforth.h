@@ -252,7 +252,7 @@ enum {
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_FETCH, DCHAR_FETCH,
-  POSTPONE, _CREATE, PARSE_NUM, PARSE_FNUM,
+  POSTPONE, _CREATE, PARSE_NUM,
   INTERP, SUBSTR, NUM_TO_STR,
   LAST_PRIMITIVE
 };
@@ -440,7 +440,6 @@ void tbforth_load_prims(void) {
   store_prim(",", COMMA);
   store_prim("d,", DCOMMA);
   store_prim(">num", PARSE_NUM);
-  store_prim(">fnum", PARSE_FNUM);
   store_prim("1+", INCR);
   store_prim("1-", DECR);
   store_prim("+", ADD);
@@ -765,13 +764,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = dpop();
       str1=tbforth_count_str((CELL)r1,(CELL*)&r1);
       str1[r1] = '\0';
-      dpush(parse_num(str1,tbforth_uram->base));
-      break;
-    case PARSE_FNUM:
-      r1 = dpop();
-      str1=tbforth_count_str((CELL)r1,(CELL*)&r1);
-      str1[r1] = '.';
-      str1[r1+1] = '\0';
       dpush(parse_num(str1,tbforth_uram->base));
       break;
     case FIND:
