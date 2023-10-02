@@ -48,13 +48,17 @@
 \ Low level memory access. This is tightly bound to the tbforth implementation
 \ of memory (structure members).  Some may not be very useful (especially return stack stuf)
 \
-: iram ram 0 + ;
+
+\ Machine stuff (iram)
+\
 : state? ( -- flag) 0 iram + @  ;
 : reset-state ( -- ) 0 0 iram + !  ;
 : compiling? ( -- flag) state? 1 = ;
 : ramsize ( -- flag) 1 iram + @  ;
 : compiling-word-addr ( -- addr) 2 iram + @ ;
 
+\ Task based RAM (uram)
+\
 : uram-size ( -- uram_length) uram 0 + @  ;
 : base ( -- base_addr) uram 1 +  ;
 : sidx ( -- dstack_idx) uram 2 + @ ;
@@ -66,6 +70,8 @@
 : T ( -- n) dsa sidx + 1- ;
 : R ( -- n) dsa ridx + 1+ ;
 
+\ Terminal input buffer...
+\
 : tibidx iram 4 + ;
 : tibwordidx iram 5 + ;
 : tibwordlen iram 6 + ;
@@ -105,7 +111,7 @@
 
 \ Comparisons
 \
-: < ( a b -- f) - <0 ;
+\ : < ( a b -- f) - <0 ;
 : > swap < ;
 
 : <= 1+ < ;

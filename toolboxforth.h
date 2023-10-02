@@ -248,7 +248,7 @@ enum {
   HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
-  NEXT, CNEXT,  EXEC, LESS_THAN_ZERO, MAKE_TASK, SELECT_TASK,
+  NEXT, CNEXT,  EXEC, LESS_THAN_ZERO, LESS_THAN, MAKE_TASK, SELECT_TASK,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_FETCH, DCHAR_FETCH,
@@ -424,7 +424,7 @@ void tbforth_load_prims(void) {
   */
   store_prim("cf", CALLC);
   store_prim("uram", URAM_BASE_ADDR);
-  store_prim("ram", RAM_BASE_ADDR);
+  store_prim("iram", RAM_BASE_ADDR);
   store_prim("immediate", IMMEDIATE);
   store_prim("abort", ABORT);
   store_prim("rpick", RPICK);
@@ -482,6 +482,7 @@ void tbforth_load_prims(void) {
   store_prim("substr", SUBSTR);
   store_prim("n>str", NUM_TO_STR);
   store_prim("interpret", INTERP);
+  store_prim("<", LESS_THAN);
   store_prim("<0", LESS_THAN_ZERO);
 }
 
@@ -577,6 +578,11 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case LESS_THAN_ZERO:
       r1 = dpop();
       dpush(r1 < 0);
+      break;
+    case LESS_THAN:
+      r1 = dpop();
+      r2 = dpop();
+      dpush(r2 < r1);
       break;
     case INCR:
       dtop()++; 
