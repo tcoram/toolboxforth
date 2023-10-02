@@ -3,13 +3,15 @@ CFLAGS=-Wall -O
 LDFLAGS= -O -lm 
 
 
-toolboxforth-posix: toolboxforth-posix.o
-	$(CC) $(CFLAGS) -o toolboxforth-posix toolboxforth-posix.o $(LDFLAGS) -lreadline -lm
-	echo "save-image toolboxforth.img" | ./toolboxforth-posix
+tbforth-posix: tbforth-posix.o tbforth.o
+	$(CC) $(CFLAGS) -o tbforth-posix tbforth-posix.o  tbforth.o $(LDFLAGS) -lreadline -lm
+	echo "save-image tbforth.img" | ./tbforth-posix
 
-arduino-stage: toolboxforth-posix
-	cp toolboxforth.img.h toolboxforth.h arduino/esp32/toolboxforth
-	cp toolboxforth.img.h toolboxforth.h arduino/generic/toolboxforth
+tbforth.o: tbforth.c
+
+arduino-stage: tbforth-posix
+	cp tbforth.img.h tbforth.h tbforth.c arduino/esp32/toolboxforth
+	cp tbforth.img.h tbforth.h tbforth.c arduino/generic/toolboxforth
 
 clean:
-	-rm -f toolboxforth.img* *.o *.exe *~ *.stackdump *.aft-TOC toolboxforth-posix
+	-rm -f tbforth.img* *.o *.exe *~ *.stackdump *.aft-TOC tbforth-posix

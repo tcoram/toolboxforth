@@ -34,14 +34,10 @@ Something to play with or gawk at how wrong it feels..
 
 I'm gonna use the term POSIX below, but you can subsitute Linux, MacOSX, OpenBSD, etc...
 
-Toolboxforth is a FORTH implemented in 1 C file (just include "toolboxforth.h" for
-easy inclusion into microcontroller projects).
-It compiles so fast, why bother making it a separate C file or library???
-Yeah, it's ugly.. But, I wanna spend less time abstracting/refactoring the C code and
-more time on the FORTH code...
+Toolboxforth is a FORTH implemented in 1 C source file.
 
 Porting is somewhat easy, but you are going to get your hands dirty. Look at
-"toolbox-posix.c" for guidance.. (subject to change).
+"tbforth-posix.c" for guidance.. (subject to change).
 
 Toolboxforth is hardcoded for a 16 bit word dictionary 
 (max 65535 words -- doesn't sound like a lot, but it has been quite adequate for some major
@@ -80,7 +76,7 @@ For example: You use the POSIX build to generate a dictionary dump that can be
 simply included for the microcontroller (currently Arduino ESP32) build.
 
 Look at the Makefile for direction... You currently need Arduino IDE to build the
-Arduino ESP32 code... and the Makefile (simply, naively) copies the needed header files
+Arduino ESP32 code... and the Makefile (simply, naively) copies the needed files
 to the subdir.
 
 Right now, only ESP32 is supported..and minimally...more to follow.
