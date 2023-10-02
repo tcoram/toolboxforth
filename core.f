@@ -127,10 +127,15 @@
     / r> * - ;
 \ : = ( a b -- flag) - 0= ;
 
-: ' ( -- addr) next-word (find) ;
-: ['] next-word (find)  1 ,  , ; immediate \ hack: LIT *is* 1
-: '& ( -- addr) next-word (find&) ;
-: ['&] next-word (find&)  1 ,  , ; immediate \ hack: LIT *is* 1
+\ Index to exec'able code
+\
+: ' ( -- addr) next-word (find-code) ;
+: ['] next-word (find-code)  1 ,  , ; immediate \ hack: LIT *is* 1
+
+\ Index to header of word
+\
+: '& ( -- addr) next-word (find-head) ;
+: ['&] next-word (find-head)  1 ,  , ; immediate \ hack: LIT *is* 1
 
 \ Helper word for building the below constructs.
 \

@@ -142,8 +142,8 @@
 
 \ From word definition addres ('&) return the code address.
 \
-: cfa  ( addr -- addr)
-    1+ count 63 and dup 2 / swap 2 mod + + ;
+\ : cfa  ( addr -- addr)
+\    1+ count 63 and dup 2 / swap 2 mod + + ;
 
 \ From a word definition address ('&) print the name of the word.
 \
@@ -183,29 +183,9 @@ variable _cc			\ keep track of # of characters on a line
 \ Forget up to marker
 \
 : mark ( <marker> ) create ;
-: forget-to-marker ( <marker> ) next-word dup (find&)
-		   dup if lwa dict! (find) exec _here dict! else drop  then drop ;
+: forget-to-marker ( <marker> ) next-word dup (find-head)
+		   dup if lwa dict! (find-code) exec _here dict! else drop  then drop ;
 
 : time-it ( addr - )
   ms >r exec ms r> - . ."  ms elapsed" cr ;
-
-mark TESTS
-: test-do  1000000 0 do i drop loop ;
-: test-for  1000000 for r@ drop next ;
-: test-begin-until 1000000  _cc ! begin -1 _cc +! _cc @ 0= until ;
-: test-begin-again 1000000  _cc ! begin -1 _cc +! _cc @ 0= if exit then again ;
-: test-begin-until-stack 1000000 begin 1- dup 0= until ;
-
-: loop-tests
-  ." testing do .. loop: "
-  ['] test-do time-it 
-  ." testing for .. next: "
-  ['] test-for time-it 
-  ." testing begin .. until: "
-  ['] test-begin-until time-it 
-  ." testing begin .. again: "
-  ['] test-begin-again time-it  
-  ." testing begin .. until-stack: "
-  ['] test-begin-until-stack time-it  ;
-
 

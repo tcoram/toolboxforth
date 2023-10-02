@@ -469,8 +469,8 @@ void tbforth_load_prims(void) {
 
   store_prim("make-task", MAKE_TASK);
   store_prim("select-task", SELECT_TASK);
-  store_prim("(find)", FIND);
-  store_prim("(find&)", FIND_ADDR);
+  store_prim("(find-code)", FIND);
+  store_prim("(find-head)", FIND_ADDR);
   store_prim(",\"", COMMA_STRING); make_immediate();
   store_prim("postpone", POSTPONE); make_immediate();
   store_prim("next-word", NEXT);
@@ -812,7 +812,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case NUM_TO_STR:			/* 32bit to string */
       {
-	char num[32+1];		/* worse case binary... */
+	static char num[PAD_SIZE+1];		/* worse case binary... */
 	i32toa(dpop(),num,tbforth_uram->base);
 	PAD_STRLEN=strlen(num);
 	memcpy(PAD_STR, num, PAD_SIZE);

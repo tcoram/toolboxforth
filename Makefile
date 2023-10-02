@@ -1,6 +1,6 @@
-CC=cc
-CFLAGS=-Wall -g
-LDFLAGS= -g -lm 
+## CC=clang
+CFLAGS=-Wall -O
+LDFLAGS= -O -lm 
 
 
 toolboxforth-posix: toolboxforth-posix.o

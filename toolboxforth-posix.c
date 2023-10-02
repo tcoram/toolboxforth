@@ -52,7 +52,7 @@ char *rl_gets ()
 }
 
 void rxgetline(char* str) {
-  fgets(str,128,stdin);
+  (void)fgets(str,128,stdin);
 }
 
 void txc(uint8_t c) {
@@ -84,8 +84,8 @@ bool config_write(char *src, uint16_t size) {
 
 bool config_read(void *dest) {
   uint16_t size;
-  fscanf(cfp,"%d\n",(int*)&size);
-  fread((char*)dest, size, 1, cfp);
+  (void)fscanf(cfp,"%d\n",(int*)&size);
+  (void)fread((char*)dest, size, 1, cfp);
   return 1;
 }
 bool config_close(void) {
@@ -157,7 +157,7 @@ tbforth_stat c_handle(void) {
     {
       char b;
       r2=dpop();
-      read(r2,&b,1);
+      (void)read(r2,&b,1);
       dpush(b);
     }
     break;
@@ -254,6 +254,16 @@ void interpret_from(FILE *fp) {
 #include <sys/types.h>
 #include <sys/stat.h>
 
+void load_f (char* fname) {
+  FILE *fp;
+  printf("   Loading %s\n",fname);
+  fp = fopen(fname, "r");
+  if (fp != NULL) 
+    interpret_from(fp);
+  fclose(fp);
+}
+
+
 int main(int argc, char* argv[]) {
 
   dict = malloc(sizeof(struct dict));
@@ -273,24 +283,13 @@ int main(int argc, char* argv[]) {
 
   OUTFP = stdout;
   if (argc < 2) {
-    FILE *fp;
     tbforth_load_prims();
     load_posix_words();
-    printf("   Loading ./core.f\n");
-    fp = fopen("./core.f", "r");
-    if (fp != NULL) 
-      interpret_from(fp);
-    fclose(fp);
-    printf("   Loading ./util.f\n");
-    fp = fopen("./util.f", "r");
-    if (fp != NULL) 
-      interpret_from(fp);
-    fclose(fp);
-    printf("   Loading ./console.f\n");
-    fp = fopen("./console.f", "r");
-    if (fp != NULL) 
-      interpret_from(fp);
-    fclose(fp);
+
+    load_f("./core.f");
+    load_f("./util.f");
+    load_f("./console.f");
+    load_f("./tests.f");
   } else {
     if (config_open_r(argv[1])) {
       if (!config_read(dict))
