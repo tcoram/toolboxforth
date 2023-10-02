@@ -60,7 +60,8 @@ erase words down to a "marker".  See util.f for an example using a marker called
 
 ```
 : mark ( <name> ) create ;
-: forget-to-marker ( <name> ) next-word dup (find&) lwa dict! (find) exec _here dict! ;
+: forget-to-marker ( <marker> ) next-word dup (find-head)
+		   dup if lwa dict! (find-code) exec (here) dict! else drop  then drop ;
 ```
 
 Yeah, that's gnarly. No documentation yet, but the best way to explore is to start

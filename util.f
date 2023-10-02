@@ -184,7 +184,7 @@ variable _cc			\ keep track of # of characters on a line
 \
 : mark ( <marker> ) create ;
 : forget-to-marker ( <marker> ) next-word dup (find-head)
-		   dup if lwa dict! (find-code) exec _here dict! else drop  then drop ;
+		   dup if lwa dict! (find-code) exec (here) dict! else drop  then drop ;
 
 : time-it ( addr - )
   ms >r exec ms r> - . ."  ms elapsed" cr ;

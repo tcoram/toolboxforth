@@ -40,7 +40,7 @@
 : dversion 0 dict@ ;
 : wordsize 1 dict@ ;
 : maxdict 2 dict@ ;
-: _here 3 ;
+: (here) 3 ;
 : lwa 4 ;
 : uram-top@ ( -- n) 5 dict@ ;
 
