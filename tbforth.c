@@ -84,6 +84,8 @@ struct tbforth_uram *tbforth_uram;
 
 RAMC tbforth_ram[TOTAL_RAM_CELLS];
 
+// LIT must be 1!
+//
 enum { 
   LIT=1, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
   HERE, RAM_BASE_ADDR, INCR, DECR,

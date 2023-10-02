@@ -16,7 +16,7 @@
    This may, depending on your target architecture, live in RAM or Flash.
    Note: A Dictionary CELL is always 2 bytes!
 */
-#define MAX_DICT_CELLS 		(65535)
+#define MAX_DICT_CELLS 		(0xFFFF)
 
 
 /*
