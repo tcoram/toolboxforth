@@ -25,11 +25,11 @@
 
 \ exit if stack value is < 1
 \
-: if>0 ( n -- ) 1 < if r> drop then ;
+: exit-if0- ( n -- ) 1 < if r> drop then ;
 
-\ exit if stack value is > 0
+\ exit if stack value is >= 0
 \
-: if<0 ( n -- ) -1 > if r> drop then ;
+: exit-if0+ ( n -- ) -1 > if r> drop then ;
 
 
 \ Allocate a character buffer 
@@ -49,7 +49,7 @@
 : decimal 10  base ! ;
 : binary 2 base ! ;
 
-: abs ( n -- n) dup if<0 -1 * ;
+: abs ( n -- n) dup exit-if0+ -1 * ;
 
 : min ( a b -- a|b) over over > if swap drop else drop then ;
 : max ( a b -- a|b) over over < if swap drop else drop then ;
@@ -98,11 +98,11 @@
 
 \ Print out top item on stack
 \
-: . ( n -- ) sidx 1+ if>0 n>str count type ;
+: . ( n -- ) sidx 1+ exit-if0- >string count type ;
 
 : .s
     [char] < emit sidx 1+ . [char] > emit 32 emit
-    sidx 1+ if>0  sidx 1+ 0 do  dsa i + @ . 32 emit loop ;
+    sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . 32 emit loop ;
 
 \ Interactive debugging help
 \

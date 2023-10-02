@@ -480,7 +480,7 @@ void tbforth_load_prims(void) {
   store_prim("+dict-c@", DCHAR_FETCH);
   store_prim("here", HERE);
   store_prim("substr", SUBSTR);
-  store_prim("n>str", NUM_TO_STR);
+  store_prim(">string", NUM_TO_STR);
   store_prim("interpret", INTERP);
   store_prim("<", LESS_THAN);
   store_prim("<0", LESS_THAN_ZERO);
