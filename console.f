@@ -16,7 +16,6 @@ tib constant TIB		( faster )
     dup 8 = if  -1 TIB +! then
     dup 13 = over 10 = or if 1 TIB +! drop exit then
     drop
-    TIB @ cr . cr 
     rd-line ;
 
 \ console... type exit to exit.
