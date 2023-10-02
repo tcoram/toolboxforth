@@ -464,8 +464,8 @@ void tbforth_load_prims(void) {
   store_prim("dict!", DICT_STORE);
   store_prim(";", EXIT);  make_immediate();
   store_prim(":", DEF); 
-  store_prim("_create", _CREATE); 
-  store_prim("_allot1", VAR_ALLOT);
+  store_prim("(create)", _CREATE); 
+  store_prim("(allot1)", VAR_ALLOT);
 
   store_prim("make-task", MAKE_TASK);
   store_prim("select-task", SELECT_TASK);

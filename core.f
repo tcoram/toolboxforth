@@ -144,27 +144,27 @@
 \ A create that simply returns address of here after created word.
 \
 : create
-    _create
+    (create)
     [compile] lit
     here 2+ ,				\ just pass the exit (here after def)
     [compile] ;
 ;
 
 : variable
-    _create
+    (create)
     [compile] lit
-    _allot1 ,
+    (allot1) ,
     [compile] ;
 ;
 
 : constant ( n -- )
-    _create
+    (create)
     [compile] lit ,
     [compile] ; 
 ; 
 
 : dconstant ( d -- )
-    _create
+    (create)
     [compile] dlit d,
     [compile] ; 
 ; 
@@ -303,9 +303,9 @@ variable _leaveloop
 \ Function pointers!
 
 : defer
-    _create
+    (create)
     [compile] lit
-    _allot1 ,
+    (allot1) ,
     [compile] @
     [compile] exec
     [compile] ;
@@ -326,7 +326,7 @@ variable _leaveloop
 
 : dup? dup 0= 0= if dup then ;
 
-: allot ( n -- )  0 do _allot1 drop loop ;
+: allot ( n -- )  0 do (allot1) drop loop ;
 
 
 \ Allocate 160 bytes... should be enough...otherwise bump it up
