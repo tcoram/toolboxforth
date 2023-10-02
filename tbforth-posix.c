@@ -130,7 +130,8 @@ tbforth_stat c_handle(void) {
     break;
   case SAVE_IMAGE:			/* save image */
     {
-      int dict_size= (dict_here())*sizeof(CELL);
+      int dict_size= (dict_here());
+      //      int dict_size= (dict_here())*sizeof(CELL);
       char *s = tbforth_next_word();
       strncpy(buf, s, tbforth_iram->tibwordlen+1);
       buf[(tbforth_iram->tibwordlen)+1] = '\0';
@@ -145,10 +146,11 @@ tbforth_stat c_handle(void) {
 	      dict->version,dict->word_size,dict->max_cells,dict->here,dict->last_word_idx,
 	      dict->varidx);
       int i;
+      printf("Dictsize = %d\n", dict_size);
       for(i = 0; i < dict_size-1; i++) {
 	fprintf(fp, "0x%0X,",dict->d[i]);
       }
-      fprintf(fp, "%0X",dict->d[dict_size-1]);
+      fprintf(fp, "0x%0X",dict->d[dict_size-1]);
       fprintf(fp,"\n}};\n");
       fclose(fp);
     }
