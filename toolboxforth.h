@@ -245,7 +245,7 @@ RAMC tbforth_ram[TOTAL_RAM_CELLS];
 
 enum { 
   LIT=1, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
-  HERE, INCR_HERE, RAM_BASE_ADDR, INCR, DECR,
+  HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN_ZERO, MAKE_TASK, SELECT_TASK,
@@ -441,7 +441,6 @@ void tbforth_load_prims(void) {
   store_prim("d,", DCOMMA);
   store_prim(">num", PARSE_NUM);
   store_prim(">fnum", PARSE_FNUM);
-  store_prim("dummy,", INCR_HERE);
   store_prim("1+", INCR);
   store_prim("1-", DECR);
   store_prim("+", ADD);
@@ -567,9 +566,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case HERE:
       dpush(dict_here());
-      break;
-    case INCR_HERE:
-      dict_incr_here(1);
       break;
     case LIT:  
       dpush(tbforth_dict[wd_idx++]);

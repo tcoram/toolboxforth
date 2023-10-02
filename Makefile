@@ -8,7 +8,8 @@ toolboxforth-posix: toolboxforth-posix.o
 	echo "save-image toolboxforth.img" | ./toolboxforth-posix
 
 arduino-stage: toolboxforth-posix
-	cp toolboxforth.img.h toolboxforth.h arduino/*/toolboxforth
+	cp toolboxforth.img.h toolboxforth.h arduino/esp32/toolboxforth
+	cp toolboxforth.img.h toolboxforth.h arduino/generic/toolboxforth
 
 clean:
 	-rm -f toolboxforth.img* *.o *.exe *~ *.stackdump *.aft-TOC toolboxforth-posix

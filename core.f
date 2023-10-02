@@ -134,6 +134,7 @@
 ; immediate
 
 
+
 \ A create that simply returns address of here after created word.
 \
 : create
@@ -168,7 +169,7 @@
 : if ( -- ifaddr)
     [compile] lit			\ precede placeholder
     here				\ push 'if' address on the stack
-    dummy,				\ placeholder for 'then' address
+    0 ,				\ placeholder for 'then' address
     [compile] 0jmp?			\ compile a conditional jmp to 'then'
 ; immediate
 
@@ -177,7 +178,7 @@
     swap dict!				\ fix 'if' to point to else block
     [compile] lit			\ precede placeholder
     here				\ push 'else' address on stack
-    dummy,				\ place holder for 'then' address
+    0 ,				\ place holder for 'then' address
     [compile] jmp			\ compile an uncoditional jmp to 'then'
 ; immediate
 
@@ -227,7 +228,7 @@ variable _leaveloop
 : leave ( -- )
     [compile] lit			\ precede placeholder
     here _leaveloop !			\ store address for +loop resolution
-    dummy,				\ placeholder for 'leave' address
+    0 ,				\ placeholder for 'leave' address
     [compile] jmp			\ jmp out of here
 ; immediate
 
@@ -275,7 +276,7 @@ variable _leaveloop
 : while
     [compile] lit
     here
-    dummy, \ place holder for later.
+    0 , \ place holder for later.
     [compile] 0jmp?
 ; immediate
 

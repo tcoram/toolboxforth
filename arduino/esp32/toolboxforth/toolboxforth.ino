@@ -2,10 +2,11 @@
 //
 #include <SPI.h>
 #include <Wire.h>
+
 extern "C" {
 #include "toolboxforth.h"
-}
 #include "toolboxforth.img.h"
+}
 
 #include <esp_task_wdt.h>
 
@@ -451,7 +452,7 @@ void loop() {
 
   tbforth_interpret("init");
   tbforth_interpret("cr memory cr");
-  tbforth_interpret("quit");
+  //  tbforth_interpret("quit");
   console();
 }
 

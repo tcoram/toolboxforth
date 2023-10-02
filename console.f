@@ -10,12 +10,13 @@ tib constant TIB		( faster )
   0 TIB ! ;
 
 : rd-line
-    key dup
+    key dup emit dup
     TIB c!+
-    dup 3 = if  0 TIB ! drop exit then
-    dup 8 = if -1 TIB +! then
-    dup 13 = over 10 = or if drop 1 TIB +! exit then
+    dup 3 = if  clear-tib drop exit then
+    dup 8 = if  -1 TIB +! then
+    dup 13 = over 10 = or if 1 TIB +! drop exit then
     drop
+    TIB @ cr . cr 
     rd-line ;
 
 \ console... type exit to exit.
@@ -25,6 +26,7 @@ tib constant TIB		( faster )
   cr ." OK" cr
   clear-tib
   rd-line
+  
   interpret
   dup 2 = if ." Huh? "  cr drop quit then
   dup 6 = if ." Abort!" cr drop quit then
