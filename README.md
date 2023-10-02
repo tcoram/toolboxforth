@@ -5,8 +5,9 @@
 A throwback to an 80s style of roll-your-own-even-if-you-shouldn't language design.
 
 This is "toolboxforth".  It's a FORTH implementation that has been in my "toolbox"
-since 2009 (under the name uForth). Back then, I used it primarily on an MSP430. It targets
-MCUs (like ESP32 and POSIX compliant operating systems).
+since 2009 (under the name uForth). Back then, I used it primarily on an MSP430.
+Today it targets the ESP32  and POSIX compliant operating systems.  Backport to MSP430
+coming soon!!!
 
 ## Features
 
