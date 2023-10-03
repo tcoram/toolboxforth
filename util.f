@@ -36,6 +36,32 @@
 \
 \ : c-allot ( n -- ) CELL / allot ;
 
+\ Variable used to keep track of how many 'of' clauses we have.
+\
+variable _endof
+
+: case ( n -- )
+    0 _endof !
+   [compile] >r
+; immediate
+
+: of ( n -- )
+    [compile] r@
+    [compile] =
+    postpone if
+; immediate
+
+: endof ( -- )
+    _endof incr
+    postpone else
+; immediate
+
+: endcase ( -- )
+    _endof @ 0 do postpone then loop
+    [compile] r>
+    [compile] drop
+; immediate
+
 
 \ Counts of RAM strings
 \
@@ -140,20 +166,9 @@
 
 
 
-\ From word definition addres ('&) return the code address.
-\
-\ : cfa  ( addr -- addr)
-\    1+ count 63 and dup 2 / swap 2 mod + + ;
-
-\ From a word definition address ('&) print the name of the word.
-\
-: .word ( addr -- )
-    1+ count 63 and type ;
-
 \ Words
 \
 variable _cc			\ keep track of # of characters on a line
-
 : words ( -- )
     cr
     0 _cc !
