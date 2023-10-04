@@ -11,12 +11,12 @@
 #define DICT_VERSION 9
 
 /* 
-   The Dictionary: Max is 64K words (64KB * 2 bytes).
-   Pick a size suitable for your target.
+   The Dictionary: Max is 64K words (64KB * 2 bytes). 
+   Pick a size suitable for your target. Default is 32KB so to fit nicely in most MCUs.
    This may, depending on your target architecture, live in RAM or Flash.
    Note: A Dictionary CELL is always 2 bytes!
 */
-#define MAX_DICT_CELLS 		(0xFFFF)
+#define MAX_DICT_CELLS 		(0xFFFF/4)
 
 
 /*
@@ -166,11 +166,73 @@ extern struct tbforth_uram *tbforth_uram;
 #define dtop3() tbforth_uram->ds[(tbforth_uram->didx)-2]
 #define rtop() tbforth_iram->rs[tbforth_uram->ridx]
 
-// Some useful OS/Platform extensions...you can handle in c_handle() or not...
-//
-enum { EMIT=1, KEY, SAVE_IMAGE, INCLUDE, OPEN, CLOSE,
-  READB, WRITEB, MS};
-
-
 extern void tbforth_cdef (char* name, int val);
+
+// Some useful OS extensions...you can handle in c_handle() or not... its up to you
+//
+enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
+  OS_READB, OS_WRITEB, OS_MS};
+
+#define OS_WORDS() \
+  tbforth_cdef("ms", OS_MS); \
+  tbforth_cdef("emit", OS_EMIT); \
+  tbforth_cdef("key", OS_KEY); \
+  tbforth_cdef("save-image", OS_SAVE_IMAGE); \
+  tbforth_cdef("include", OS_INCLUDE); \
+  tbforth_cdef("open-file", OS_OPEN); \
+  tbforth_cdef("close-file", OS_CLOSE); \
+
+
+// Some useful MCU extensions...you can handle in c_handle() or not... its up to you
+//
+enum {
+  MCU_GPIO_MODE = 100,
+  MCU_GPIO_READ,
+  MCU_GPIO_WRITE,
+  MCU_SPI_CFG,
+  MCU_SPI_BEGIN_TRANS,
+  MCU_SPI_WRITE,
+  MCU_SPI_READ,
+  MCU_SPI_END_TRANS,
+  MCU_UART_BEGIN,
+  MCU_UART_END,
+  MCU_UART_AVAIL,
+  MCU_UART_READ,
+  MCU_UART_WRITE,
+  MCU_WDT_CONFIG,
+  MCU_WDT_RESET,
+  MCU_DELAY,
+  MCU_GPIO_WAKE,
+  MCU_ENCRYPT,
+  MCU_DECRYPT,
+  MCU_ENCODE64,
+  MCU_DECODE64,
+  MCU_MAC,
+  MCU_SLEEP
+};
+
+#define MCU_WORDS()		     \
+  tbforth_interpret("mark MCU-HAL"); \
+  tbforth_cdef("gpio-mode", MCU_GPIO_MODE); \
+  tbforth_cdef("gpio-read", MCU_GPIO_READ); \
+  tbforth_cdef("gpio-write", MCU_GPIO_WRITE); \
+  tbforth_cdef("spi-config", MCU_SPI_CFG); \
+  tbforth_cdef("spi\{", MCU_SPI_BEGIN_TRANS); \
+  tbforth_cdef("spi!", MCU_SPI_WRITE); \
+  tbforth_cdef("spi@", MCU_SPI_READ); \
+  tbforth_cdef("}spi", MCU_SPI_END_TRANS); \
+  tbforth_cdef("uart-begin", MCU_UART_BEGIN); \
+  tbforth_cdef("uart-end", MCU_UART_END); \
+  tbforth_cdef("uart?", MCU_UART_AVAIL); \
+  tbforth_cdef("uart@", MCU_UART_READ); \
+  tbforth_cdef("uart!", MCU_UART_WRITE); \
+  tbforth_cdef("/wdt", MCU_WDT_CONFIG); \
+  tbforth_cdef("wdt-rst", MCU_WDT_RESET); \
+  tbforth_cdef("delay", MCU_DELAY); \
+  tbforth_cdef("sleep", MCU_SLEEP); \
+  tbforth_cdef("gcm-encrypt", MCU_ENCRYPT); \
+  tbforth_cdef("gcm-decrypt", MCU_DECRYPT); \
+  tbforth_cdef("encode64", MCU_ENCODE64); \
+  tbforth_cdef("decode64", MCU_DECODE64); \
+  tbforth_cdef("mac", MCU_MAC); \
 

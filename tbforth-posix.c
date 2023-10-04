@@ -96,14 +96,9 @@ bool config_close(void) {
 void interpret_from(FILE *fp);
 
 
-void load_posix_words () {
-  tbforth_cdef("ms", MS);
-  tbforth_cdef("emit", EMIT);
-  tbforth_cdef("key", KEY);
-  tbforth_cdef("save-image", SAVE_IMAGE);
-  tbforth_cdef("include", INCLUDE);
-  tbforth_cdef("open-file", OPEN);
-  tbforth_cdef("close-file", CLOSE);
+void load_ext_words () {
+  OS_WORDS();
+  MCU_WORDS();
 }
 
 tbforth_stat c_handle(void) {
@@ -112,7 +107,7 @@ tbforth_stat c_handle(void) {
   static char buf[80*2];
 
   switch(r1) {
-  case MS:		/* milliseconds */
+  case OS_MS:		/* milliseconds */
     {
       struct timeval tv;
       gettimeofday(&tv,0);
@@ -122,13 +117,13 @@ tbforth_stat c_handle(void) {
       dpush(r2);
     }
     break;
-  case EMIT:			/* emit */
+  case OS_EMIT:			/* emit */
     txc(dpop()&0xff);
     break;
-  case KEY:			/* key */
+  case OS_KEY:			/* key */
     dpush((CELL)rxc());
     break;
-  case SAVE_IMAGE:			/* save image */
+  case OS_SAVE_IMAGE:			/* save image */
     {
       int dict_size= (dict_here());
       //      int dict_size= (dict_here())*sizeof(CELL);
@@ -146,7 +141,7 @@ tbforth_stat c_handle(void) {
 	      dict->version,dict->word_size,dict->max_cells,dict->here,dict->last_word_idx,
 	      dict->varidx);
       int i;
-      printf("Dictsize = %d\n", dict_size);
+      printf("dictionary size = %d\n", dict_size);
       for(i = 0; i < dict_size-1; i++) {
 	fprintf(fp, "0x%0X,",dict->d[i]);
       }
@@ -155,7 +150,7 @@ tbforth_stat c_handle(void) {
       fclose(fp);
     }
     break;
-  case READB:
+  case OS_READB:
     {
       char b;
       r2=dpop();
@@ -163,7 +158,7 @@ tbforth_stat c_handle(void) {
       dpush(b);
     }
     break;
-  case WRITEB:
+  case OS_WRITEB:
     {
       char b;
       r2=dpop();
@@ -171,10 +166,10 @@ tbforth_stat c_handle(void) {
       dpush(write(r2,&b,1));
     }
     break;
-  case CLOSE:
+  case OS_CLOSE:
     close(dpop());
     break;
-  case OPEN:
+  case OS_OPEN:
     {
       char *s;
       r1 = dpop();
@@ -185,7 +180,7 @@ tbforth_stat c_handle(void) {
       dpush(open(buf, r1));
     }
     break;
-  case INCLUDE:			/* include */
+  case OS_INCLUDE:			/* include */
     {
       char *s = tbforth_next_word();
       strncpy(buf,s, tbforth_iram->tibwordlen+1);
@@ -286,7 +281,7 @@ int main(int argc, char* argv[]) {
   OUTFP = stdout;
   if (argc < 2) {
     tbforth_load_prims();
-    load_posix_words();
+    load_ext_words();
 
     load_f("./core.f");
     load_f("./util.f");
@@ -301,6 +296,7 @@ int main(int argc, char* argv[]) {
   }
   tbforth_interpret ("mark USER-WORDS");
   tbforth_interpret("init");
+  tbforth_interpret("cr memory cr");
   interpret_from(stdin);
 
   return 0;

@@ -32,61 +32,13 @@ extern "C" {
 #endif
 #endif
 
-enum {
-  LOAD_ESP32_WORDS=100,
-  GPIO_MODE,
-  GPIO_READ,
-  GPIO_WRITE,
-  SPI_CFG,
-  SPI_BEGIN_TRANS,
-  SPI_WRITE,
-  SPI_READ,
-  SPI_END_TRANS,
-  UART_BEGIN,
-  UART_END,
-  UART_AVAIL,
-  UART_READ,
-  UART_WRITE,
-  WDT_CONFIG,
-  WDT_RESET,
-  DELAY,
-  GPIO_WAKE,
-  ENCRYPT,
-  DECRYPT,
-  ENCODE64,
-  DECODE64,
-  MAC,
-  SLEEP
-};
+
   
 
-void load_esp32_words () {
-  tbforth_interpret("mark ESP32");
-  tbforth_cdef("gpio-mode", GPIO_MODE);
-  tbforth_cdef("gpio-read", GPIO_READ);
-  tbforth_cdef("gpio-write", GPIO_WRITE);
-  tbforth_cdef("spi-config", SPI_CFG);
-  tbforth_cdef("spi\{", SPI_BEGIN_TRANS);
-  tbforth_cdef("spi!", SPI_WRITE);
-  tbforth_cdef("spi@", SPI_READ);
-  tbforth_cdef("\}spi", SPI_END_TRANS);
-  tbforth_cdef("uart-begin", UART_BEGIN);
-  tbforth_cdef("uart-end", UART_END);
-  tbforth_cdef("uart?", UART_AVAIL);
-  tbforth_cdef("uart@", UART_READ);
-  tbforth_cdef("uart!", UART_WRITE);
-  tbforth_cdef("/wdt", WDT_CONFIG);
-  tbforth_cdef("wdt-rst", WDT_RESET);
-  tbforth_cdef("delay", DELAY);
-  tbforth_cdef("sleep", SLEEP);
-  tbforth_cdef("gcm-encrypt", ENCRYPT);
-  tbforth_cdef("gcm-decrypt", DECRYPT);
-  tbforth_cdef("encode64", ENCODE64);
-  tbforth_cdef("decode64", DECODE64);
-  tbforth_cdef("mac", MAC);
+void load_ext_words () {
+  OS_WORDS();
+  MCU_WORDS();
 }
-
-
 
 
 #ifdef MBED_TLS
@@ -119,35 +71,32 @@ tbforth_stat c_handle(void) {
   RAMC r1 = dpop();
 
   switch(r1) {
-  case LOAD_ESP32_WORDS:
-    load_esp32_words ();
-    break;
-  case GPIO_MODE:
+  case MCU_GPIO_MODE:
     pinMode(dpop(),dpop());
     break;
-  case GPIO_READ:
+  case MCU_GPIO_READ:
     dpush(digitalRead(dpop()));
     break;
-  case GPIO_WRITE:
+  case MCU_GPIO_WRITE:
     digitalWrite(dpop(), dpop());
     break;
-  case UART_WRITE:
+  case MCU_UART_WRITE:
     r1 = dpop();
     HS[r1].write(dpop());
     break;
-  case UART_READ:
+  case MCU_UART_READ:
     r1 = dpop();
     dpush(HS[r1].read());
     break;
-  case UART_AVAIL:
+  case MCU_UART_AVAIL:
     r1 = dpop();
     dpush(HS[r1].available());
     break;
-  case UART_END:
+  case MCU_UART_END:
     r1 = dpop();
     HS[r1].flush(); HS[r1].end();
     break;
-  case UART_BEGIN:
+  case MCU_UART_BEGIN:
     {
       r1 = dpop();
       RAMC baud = dpop();
@@ -156,7 +105,7 @@ tbforth_stat c_handle(void) {
       HS[r1].begin(baud, SERIAL_8N1, rx, tx);
     }
     break;
-  case SPI_CFG:
+  case MCU_SPI_CFG:
     {
       RAMC clkpin = dpop();
       RAMC misopin = dpop();
@@ -164,7 +113,7 @@ tbforth_stat c_handle(void) {
       SPI.begin(clkpin,misopin,mosipin);
     }
     break;
-  case SPI_BEGIN_TRANS:
+  case MCU_SPI_BEGIN_TRANS:
     {
       RAMC speed = dpop();
       RAMC bitorder = dpop();
@@ -176,17 +125,17 @@ tbforth_stat c_handle(void) {
       digitalWrite(cspin, LOW);
     }
     break;
-  case SPI_WRITE:
+  case MCU_SPI_WRITE:
     SPI.transfer(dpop());
     break;
-  case SPI_READ:
+  case MCU_SPI_READ:
     dpush(SPI.transfer(0));
     break;
-  case SPI_END_TRANS:
+  case MCU_SPI_END_TRANS:
     digitalWrite(dpop(), HIGH);
     SPI.endTransaction();
     break;
-  case WDT_CONFIG:
+  case MCU_WDT_CONFIG:
     r1 = dpop();
     if (r1 > 0) {
       esp_task_wdt_init(r1, true);    
@@ -196,13 +145,13 @@ tbforth_stat c_handle(void) {
       esp_task_wdt_deinit();
     }
     break;
-  case WDT_RESET:
+  case MCU_WDT_RESET:
     esp_task_wdt_reset();
     break;
-  case DELAY:
+  case MCU_DELAY:
     delay(dpop());
     break;
-  case SLEEP:
+  case MCU_SLEEP:
     {
       RAMC deepsleep = dpop();
       RAMC ms = dpop();
@@ -242,7 +191,7 @@ tbforth_stat c_handle(void) {
       }
     }
     break;
-  case MAC:
+  case MCU_MAC:
     {
       uint64_t _macid = 0LL;
       esp_efuse_mac_get_default((uint8_t*) (&_macid));
@@ -252,7 +201,7 @@ tbforth_stat c_handle(void) {
     break;
 
 #ifdef MBED_TLS
-  case ENCODE64:
+  case MCU_ENCODE64:
     {
       RAMC inaddr = dpop();
       RAMC outaddr = dpop();
@@ -265,7 +214,7 @@ tbforth_stat c_handle(void) {
       dpush(olen);
     }
     break;
-  case DECODE64:
+  case MCU_DECODE64:
     {
       RAMC inaddr = dpop();
       RAMC outaddr = dpop();
@@ -278,8 +227,8 @@ tbforth_stat c_handle(void) {
       dpush(olen);
     }
     break;
-  case ENCRYPT:
-  case DECRYPT:
+  case MCU_ENCRYPT:
+  case MCU_DECRYPT:
     {
       RAMC inaddr = dpop();
       RAMC outaddr = dpop();
@@ -290,21 +239,21 @@ tbforth_stat c_handle(void) {
       uint8_t *iv = (uint8_t*)&tbforth_ram[ivaddr+1];
       uint8_t *in = (uint8_t*)&tbforth_ram[inaddr+1];
       uint8_t *out = (uint8_t*)&tbforth_ram[outaddr+1];
-      encrypt (r1 == ENCRYPT, key, iv, in, out, blocks);
+      encrypt (r1 == MCU_ENCRYPT, key, iv, in, out, blocks);
     }
     break;
 #endif
-  case MS:		/* milliseconds */
+  case OS_MS:		/* milliseconds */
     dpush(millis());
     break;
-  case EMIT:			/* emit */
+  case OS_EMIT:			/* emit */
     txc(dpop()&0xff);
     break;
-  case KEY:			/* key */
+  case OS_KEY:			/* key */
     dpush((CELL)rxc());
     break;
 #ifdef HAVE_FS
-  case SAVE_IMAGE:			/* save image */
+  case OS_SAVE_IMAGE:			/* save image */
     {
       FLASH_FS.begin(true);
       File fp;
@@ -440,14 +389,14 @@ void loop() {
     } else {
       txs0("Can't load /TBFORTH.IMG...");
       tbforth_init();
-      tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
-      tbforth_interpret("init-esp32");
+      //      tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
+      //      tbforth_interpret("init-esp32");
     }
   }
 #else
   tbforth_init();
-  tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
-  tbforth_interpret("init-esp32");
+  //  tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
+  //  tbforth_interpret("init-esp32");
 #endif
 
   tbforth_interpret("init");
