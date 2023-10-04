@@ -194,6 +194,34 @@ variable _cc			\ keep track of # of characters on a line
 : is-immediate? ( addr -- addr flag)
     dup 1+ 128 and ;
 
+
+\ Function pointers!
+\ example:
+\   defer WORDS
+\   ' words is WORDS
+
+: defer
+    (create)
+    [compile] lit
+    (allot1) ,
+    [compile] @
+    [compile] exec
+    [compile] ;
+;
+
+: is ( xt --)
+    compiling? if
+	[compile] lit
+	postpone '
+	,
+	[compile] 1+
+	[compile] dict@
+	[compile] !
+    else
+	postpone ' 1+ dict@ !
+    then
+; immediate
+
 \ Place a marker
 \ Forget up to marker
 \

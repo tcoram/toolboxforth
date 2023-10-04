@@ -304,31 +304,6 @@ variable _leaveloop
     [compile] 0jmp?
 ; immediate
 
-
-\ Function pointers!
-
-: defer
-    (create)
-    [compile] lit
-    (allot1) ,
-    [compile] @
-    [compile] exec
-    [compile] ;
-;
-
-: is ( xt --)
-    compiling? if
-	[compile] lit
-	postpone '
-	,
-	[compile] 1+
-	[compile] @
-	[compile] !
-    else
-	postpone ' 1+ @ !
-    then
-; immediate
-
 : dup? dup 0= 0= if dup then ;
 
 : allot ( n -- )  0 do (allot1) drop loop ;
