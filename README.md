@@ -16,6 +16,8 @@ coming soon!!!
 * A good portion is (self) implemented in FORTH. Just enuf C for speed and a minimal FORTH kernel.
 * Portable. Just need C. Don't even need a filesystem. MCU dictionaries can be bootraped from POSIX build generated header file.
 * 16 and 32 bit MCU friendly. Orignally started life on an MSP430... Tune as you see fit.
+* Full interactive console on MCU. Just connect via terminal program at 115200 baud.
+* MCU Stub words. Develop MCU targeted apps on desktop and just deploy the image to MCU with minimal dev on MCU.
 * FORTH "macros" and compilation via [compile], immediate and postpone. Rewrite the compiler on the fly!
 * Tail call optimized recursion.
 * Hackable. Everything is hackable. In fact, almost everything is hackable from FORTH itself.
