@@ -37,12 +37,12 @@
  
 \ Low level dictionary access.
 \
-: dversion 0 dict@ ;
-: wordsize 1 dict@ ;
-: maxdict 2 dict@ ;
-: (here) 3 ;
-: lwa 4 ;
-: uram-top@ ( -- n) 5 dict@ ;
+: dversion ( - u)  0 dict@ ;
+: wordsize ( - u) 1 dict@ ;
+: maxdict ( - u) 2 dict@ ;
+: (here) ( - a) 3 ;
+: lwa  ( - a) 4 ;
+: uram-top@ ( -- u) 5 dict@ ;
 
 
 \ Low level memory access. This is tightly bound to the tbforth implementation
@@ -51,24 +51,24 @@
 
 \ Machine stuff (iram)
 \
-: state? ( -- flag) 0 iram + @  ;
-: reset-state ( -- ) 0 0 iram + !  ;
-: compiling? ( -- flag) state? 1 = ;
-: ramsize ( -- flag) 1 iram + @  ;
-: compiling-word-addr ( -- addr) 2 iram + @ ;
+: state? ( - f) 0 iram + @  ;
+: reset-state ( - ) 0 0 iram + !  ;
+: compiling? ( - f) state? 1 = ;
+: ramsize ( - f) 1 iram + @  ;
+: compiling-word-addr ( -- a) 2 iram + @ ;
 
 \ Task based RAM (uram)
 \
-: uram-size ( -- uram_length) uram 0 + @  ;
-: base ( -- base_addr) uram 1 +  ;
-: sidx ( -- dstack_idx) uram 2 + @ ;
-: ridx ( -- rtack_idx) uram 3 + @ ;
-: dslen ( -- dstack_len) uram 4 + @ ;
-: rslen ( -- rstack_len) uram 5 + @ ;
-: dsa ( -- dstack_addr)  uram 6 + ;
-: rsa ( -- rstack_addr) dsa dslen + ;
-: T ( -- n) dsa sidx + 1- ;
-: R ( -- n) dsa ridx + 1+ ;
+: uram-size ( - u) uram 0 + @  ;
+: base ( - a) uram 1 +  ;  \ number base address
+: sidx ( - u) uram 2 + @ ;  \ data stack pos
+: ridx ( - u) uram 3 + @ ; \ return stack pos
+: dslen ( - u) uram 4 + @ ; \ data stack length
+: rslen ( - u) uram 5 + @ ; \ return stack length
+: dsa ( - a)  uram 6 + ; \ data stack address
+: rsa ( - a) dsa dslen + ; \ return stack address
+: T ( - a) dsa sidx + 1- ; \ top of data stack
+: R ( - a) dsa ridx + 1+ ; \ top of return stack
 
 \ Terminal input buffer...
 \
@@ -82,7 +82,7 @@
 \ : rpick  dsa ridx + 1+ 1+ + @ ;
 
 \ Stack item count
-: depth ( -- n) sidx 1 + ;
+: depth ( -- u) sidx 1 + ;
 
 
 \ no operation
@@ -103,15 +103,14 @@
 \ : over ( a b -- a b a) 1 pick ;
 \ : swap ( a b -- b a) >r >r 1 rpick r> r> drop ;
 \ : rot ( a b c -- c b a) >r >r >r 2 rpick 1 rpick r> r> r> 2drop ;
-: 2dup ( a b -- a b a b) over over ;
-: 2drop ( a b -- ) drop drop ;
-: nip ( a b -- b) over xor xor ;
+: 2dup ( x y - x y x y)  over over ;
+: 2drop ( x y - ) drop drop ;
+: nip ( x y - y) over xor xor ;
 
-: r@ ( -- a) 1 rpick ; \ It's 1 cause 0 is the return for this word call...
+: r@ ( - u) 1 rpick ; \ It's 1 cause 0 is the return for this word call...
 
 \ Comparisons
 \
-\ : < ( a b -- f) - <0 ;
 : > swap < ;
 
 : <= 1+ < ;
@@ -119,22 +118,25 @@
 
 \ Misc useful stuff
 \
-: +! ( n addr -- ) dup >r @ + r> ! ;
-: incr ( addr -- ) 1 swap +! ;
-: decr ( addr -- ) -1 swap +! ;
-: mod ( y x  -- n)
-    over swap ( y y x) dup >r  ( y y x)
-    / r> * - ;
-\ : = ( a b -- flag) - 0= ;
+: +! ( u a - ) dup >r @ + r> ! ;
+: incr ( a - ) 1 swap +! ;
+: decr ( a - ) -1 swap +! ;
+\ : mod ( y x  -- u)
+\    over swap ( y y x) dup >r  ( y y x)
+\    / r> * - ;
+\ : = ( a b -- f) - 0= ;
+
+: /mod ( u u - r q)
+  2dup / >r mod r> ;
 
 \ Index to exec'able code
 \
-: ' ( -- addr) next-word (find-code) ;
+: ' ( -<word>- a) next-word (find-code) ;
 : ['] next-word (find-code)  1 ,  , ; immediate \ hack: LIT *is* 1
 
 \ Index to header of word
 \
-: '& ( -- addr) next-word (find-head) ;
+: '& ( -<word>- a) next-word (find-head) ;
 : ['&] next-word (find-head)  1 ,  , ; immediate \ hack: LIT *is* 1
 
 \ Helper word for building the below constructs.
@@ -162,19 +164,22 @@
     [compile] ;
 ;
 
-: constant ( n -- )
+: constant ( n -<name>- )
     (create)
     [compile] lit ,
     [compile] ; 
 ; 
 
-: dconstant ( d -- )
+
+: dconstant ( d -<name>- )
     (create)
     [compile] dlit d,
     [compile] ; 
-; 
+;
 
-    
+: ddict@ ( a - u)
+  dup dict@ swap 1+ dict@ swap 16 lshift or ;
+  
 \ Conditionals
 
 : if ( -- ifaddr)
@@ -308,10 +313,11 @@ variable _leaveloop
 
 : allot ( n -- )  0 do (allot1) drop loop ;
 
+: byte-allot ( n -- ) RAMC / allot  ;
 
 \ Allocate 160 bytes... should be enough...otherwise bump it up
 \
-variable pad 160 RAMC / allot
+variable pad 160 byte-allot
 variable _delim
 : word ( delim -- addr)
     _delim !

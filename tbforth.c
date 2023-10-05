@@ -89,12 +89,12 @@ RAMC tbforth_ram[TOTAL_RAM_CELLS];
 enum { 
   LIT=1, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
   HERE, RAM_BASE_ADDR, INCR, DECR,
-  ADD, SUB, MULT, DIV, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
+  ADD, SUB, MULT, DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN_ZERO, LESS_THAN, MAKE_TASK, SELECT_TASK,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
-  VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_FETCH, DCHAR_FETCH,
+  VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
   POSTPONE, _CREATE, PARSE_NUM,
   INTERP, SUBSTR, NUM_TO_STR,
   LAST_PRIMITIVE
@@ -290,6 +290,7 @@ void tbforth_load_prims(void) {
   store_prim("rshift", RSHIFT);
   store_prim("*", MULT);
   store_prim("/", DIV);
+  store_prim("mod", MOD);
   store_prim("0=", EQ_ZERO);
   store_prim("=", EQ);
   store_prim("lit", LIT);
@@ -313,6 +314,7 @@ void tbforth_load_prims(void) {
   store_prim("postpone", POSTPONE); make_immediate();
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
+  store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
   store_prim("+c@", CHAR_FETCH);
   store_prim("+dict-c@", DCHAR_FETCH);
@@ -467,6 +469,10 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = dpop(); r2 = dtop(); 
       dtop() = r2/r1;
       break;
+    case MOD :
+      r1 = dpop(); r2 = dtop(); 
+      dtop() = r2%r1;
+      break;
     case RPICK:
       r1 = dpop();
       r2 = rpick(r1);
@@ -529,6 +535,13 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       str1 =(char*)&tbforth_dict[r2];
       str1+=r1;
       dpush(*str1);
+      break;
+    case CHAR_STORE:
+      r1 = dpop();
+      r2 = dpop();
+      str1 =(char*)&tbforth_ram[r2];
+      str1+=r1;
+      *str1 = dpop();
       break;
     case CHAR_APPEND:
       r1 = dpop();
