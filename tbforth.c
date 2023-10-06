@@ -108,6 +108,7 @@ void tbforth_cdef (char* name, int val) {
 
 RAMC parse_num(char *s, uint8_t base) {
   char *p = s;
+  char *endptr;
 #ifdef SUPPORT_FLOAT_FIXED
   double f;
   while (*p != '\0' && *p != ' ' && *p != '.') ++p;
@@ -128,8 +129,11 @@ RAMC parse_num(char *s, uint8_t base) {
   }
   // Treat base 10 as 0 so we can handle 0xNN as well as decimal.
   //
-  RAMC num = strtol(p,NULL, tbforth_uram->base == 10 ? 0 : tbforth_uram->base);
+  RAMC num = strtol(p,&endptr, tbforth_uram->base == 10 ? 0 : tbforth_uram->base);
   tbforth_uram->base = curbase;
+  if (*endptr != 32  && *endptr != '\0') {
+    tbforth_abort_request(ABORT_NAW);
+  }
   return num;
 }
 
@@ -621,7 +625,10 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = dpop();
       str1=tbforth_count_str((CELL)r1,(CELL*)&r1);
       str1[r1] = '\0';
-      dpush(parse_num(str1,tbforth_uram->base));
+      tbforth_abort_clr();
+      r2 = parse_num(str1,tbforth_uram->base);
+      if (!tbforth_aborting()) 
+	dpush(r2);
       break;
     case FIND:
     case FIND_ADDR:
@@ -731,7 +738,7 @@ tbforth_stat interpret_tib() {
     case 0:			/* interpret mode */
       if (wd_idx == 0) {	/* number or trash */
 	RAMC num = parse_num(word,tbforth_uram->base);
-	if (num == 0 && word[0] != '0') {
+	if (tbforth_aborting()) {
 	  tbforth_abort_request(ABORT_NAW);
 	  tbforth_abort();
 	  return E_NOT_A_WORD;
@@ -749,8 +756,7 @@ tbforth_stat interpret_tib() {
     case COMPILING:			/* in the middle of a colon def */
       if (wd_idx == 0) {	/* number or trash */
 	RAMC num = parse_num(word,tbforth_uram->base);
-	if (num == 0 && word[0] != '0') {
-	  tbforth_abort_request(ABORT_NAW);
+	if (tbforth_aborting()) {
 	  tbforth_abort();
 	  dict_end_def();
 	  return E_NOT_A_WORD;

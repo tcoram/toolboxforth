@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "3.0"
-#define DICT_VERSION 9
+#define TBFORTH_VERSION "3.02"
+#define DICT_VERSION 10
 
 /* 
    The Dictionary: Max is 64K words (64KB * 2 bytes). 
