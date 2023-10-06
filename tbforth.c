@@ -554,14 +554,14 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r2 = dpop();
       str1 =(char*)&tbforth_ram[r2];
       str1+=r1;
-      dpush(*str1);
+      dpush(0xFF & *str1);
       break;
     case DCHAR_FETCH:
       r1 = dpop();
       r2 = dpop();
       str1 =(char*)&tbforth_dict[r2];
       str1+=r1;
-      dpush(*str1);
+      dpush(0xFF & *str1);
       break;
     case CHAR_STORE:
       r1 = dpop();
