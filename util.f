@@ -126,7 +126,7 @@ variable _endof
 \
 : . ( n -- ) sidx 1+ exit-if0- >string count type 32 emit ;
 
-: u. ( u -- ) sidx 1+ exit-if0- u>string count type ;
+: u. ( u -- ) sidx 1+ exit-if0- u>string count type 32 emit ;
 
 : .s
     [char] < emit sidx 1+ . [char] > emit 32 emit
