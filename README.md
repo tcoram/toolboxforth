@@ -46,6 +46,10 @@ Toolboxforth is hardcoded for a 16 bit word dictionary
 (max 65535 words -- doesn't sound like a lot, but it has been quite adequate for some major
 projects). However, toolboxforth uses 32 bit words for the stacks and RAM.
 
+All numbers are stored in RAM as 32 bits.  Characters and strings are packed into
+32 bit cells, so they have special access words like +c! +c@ and bcopy, where you
+must provide an "index" (byte count) into the 32 bit words.
+
 It has the concept of "tasks", but that code isn't completed yet...
 
 This C code is gnarly, but defines just enough FORTH to bootstrap a more usable FORTH.

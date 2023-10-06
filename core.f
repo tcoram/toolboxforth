@@ -95,6 +95,7 @@
 : not 0= ;
 : 2+ 2 + ;
 : 2* 2 * ;
+: 2/ 2 / ;
 
 
 \ Stack manipulation
@@ -313,7 +314,7 @@ variable _leaveloop
 
 : allot ( n -- )  0 do (allot1) drop loop ;
 
-: byte-allot ( n -- ) RAMC / allot  ;
+: byte-allot ( n -- ) RAMC /mod + allot  ;
 
 \ Allocate 160 bytes... should be enough...otherwise bump it up
 \

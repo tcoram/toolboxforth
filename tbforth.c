@@ -95,6 +95,7 @@ enum {
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
+  BYTE_COPY,
   POSTPONE, _CREATE, PARSE_NUM,
   INTERP, SUBSTR, NUM_TO_STR, UNUM_TO_STR,
   LAST_PRIMITIVE
@@ -343,6 +344,7 @@ void tbforth_load_prims(void) {
   store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
   store_prim("+c@", CHAR_FETCH);
+  store_prim("bcopy", BYTE_COPY);
   store_prim("+dict-c@", DCHAR_FETCH);
   store_prim("here", HERE);
   store_prim("substr", SUBSTR);
@@ -362,7 +364,7 @@ char* tbforth_count_str(CELL addr,CELL* new_addr) {
   return str;
 }
 
-/* Scratch variables for exec */
+/* Scratch/Register variables for exec */
 static RAMC r1, r2, r3, r4;
 static char *str1, *str2;
 static char b;
@@ -555,6 +557,19 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       str1 =(char*)&tbforth_ram[r2];
       str1+=r1;
       dpush(0xFF & *str1);
+      break;
+    case BYTE_COPY:
+      {
+	RAMC from, dest, fidx, didx, cnt;
+	cnt = dpop();
+	didx = dpop();
+	dest = dpop();
+	fidx = dpop();
+	from  = dpop();
+	str1 = (char*)&tbforth_ram[from] + fidx;
+	str2 = (char*)&tbforth_ram[dest] + didx;
+	memcpy (str2, str1, cnt);
+      }
       break;
     case DCHAR_FETCH:
       r1 = dpop();
