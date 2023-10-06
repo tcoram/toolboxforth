@@ -96,7 +96,7 @@ enum {
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
   POSTPONE, _CREATE, PARSE_NUM,
-  INTERP, SUBSTR, NUM_TO_STR,
+  INTERP, SUBSTR, NUM_TO_STR, UNUM_TO_STR,
   LAST_PRIMITIVE
 };
 
@@ -142,7 +142,7 @@ char* i32toa(int32_t value, char* result, int32_t base) {
   if (base < 2 || base > 36) { *result = '\0'; return result; }
   
   char *ptr = result, *ptr1 = result, tmp_char;
-  int32_t tmp_value;
+  int32_t tmp_value = value;
   
   do {
     tmp_value = value;
@@ -152,6 +152,28 @@ char* i32toa(int32_t value, char* result, int32_t base) {
   
   // Apply negative sign
   if (tmp_value < 0) *ptr++ = '-';
+  *ptr-- = '\0';
+  while(ptr1 < ptr) {
+    tmp_char = *ptr;
+    *ptr-- = *ptr1;
+    *ptr1++ = tmp_char;
+  }
+  return result;
+}
+
+char* u32toa(uint32_t value, char* result, int32_t base) {
+  // check that the base if valid
+  if (base < 2 || base > 36) { *result = '\0'; return result; }
+  
+  char *ptr = result, *ptr1 = result, tmp_char;
+  uint32_t tmp_value = value;
+  
+  do {
+    tmp_value = value;
+    value /= base;
+    *ptr++ = "zyxwvutsrqponmlkjihgfedcba9876543210123456789abcdefghijklmnopqrstuvwxyz" [35 + (tmp_value - value * base)];
+  } while ( value );
+  
   *ptr-- = '\0';
   while(ptr1 < ptr) {
     tmp_char = *ptr;
@@ -325,6 +347,7 @@ void tbforth_load_prims(void) {
   store_prim("here", HERE);
   store_prim("substr", SUBSTR);
   store_prim(">string", NUM_TO_STR);
+  store_prim("u>string", UNUM_TO_STR);
   store_prim("interpret", INTERP);
   store_prim("<", LESS_THAN);
   store_prim("<0", LESS_THAN_ZERO);
@@ -668,12 +691,14 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       memcpy(PAD_STR, str1 + r3, r2);
       dpush(PAD_ADDR);
       break;
+    case UNUM_TO_STR:
     case NUM_TO_STR:			/* 32bit to string */
       {
-	static char num[PAD_SIZE+1];		/* worse case binary... */
-	i32toa(dpop(),num,tbforth_uram->base);
-	PAD_STRLEN=strlen(num);
-	memcpy(PAD_STR, num, PAD_SIZE);
+	if (cmd == UNUM_TO_STR)
+	  u32toa(dpop(),PAD_STR,tbforth_uram->base);
+	else
+	  i32toa(dpop(),PAD_STR,tbforth_uram->base);
+	PAD_STRLEN=strlen(PAD_STR);
 	dpush(PAD_ADDR);
       }
       break;

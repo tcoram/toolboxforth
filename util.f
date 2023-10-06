@@ -124,11 +124,13 @@ variable _endof
 
 \ Print out top item on stack
 \
-: . ( n -- ) sidx 1+ exit-if0- >string count type ;
+: . ( n -- ) sidx 1+ exit-if0- >string count type 32 emit ;
+
+: u. ( u -- ) sidx 1+ exit-if0- u>string count type ;
 
 : .s
     [char] < emit sidx 1+ . [char] > emit 32 emit
-    sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . 32 emit loop ;
+    sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . loop ;
 
 \ Interactive debugging help
 \
@@ -151,18 +153,18 @@ variable _endof
 \
 : memory
     9 emit
-    ." Dict: " here .  ."  cells (" here 2* . ."  bytes) used out of "
-    maxdict . ."  cells."
+    ." Dict: " here .  ." cells (" here 2* . ." bytes) used out of "
+    maxdict . ." cells."
     ."  (" here 100 * maxdict / . ." % used)." cr
     9 emit
-    ." System RAM : " ramsize . ."  cells (" ramsize wordsize * . ."  bytes)" cr
+    ." System RAM : " ramsize . ." cells (" ramsize wordsize * . ." bytes)" cr
     9 emit
-    ." Task Data Stack: " dslen . ."  cells. " 
-    ." Task Return Stack: " rslen . ."  cells."  cr
+    ." Task Data Stack: " dslen . ." cells. " 
+    ." Task Return Stack: " rslen . ." cells."  cr
     9 emit
     ." Task RAM: " uram-top@ .
-    ."  cells (" uram-top@ wordsize * . ."  bytes) used out of " uram-size .
-    ."  cells" cr ;
+    ." cells (" uram-top@ wordsize * . ." bytes) used out of " uram-size .
+    ." cells" cr ;
 
 
 
