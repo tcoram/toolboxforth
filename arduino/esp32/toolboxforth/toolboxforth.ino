@@ -12,7 +12,7 @@ extern "C" {
 
 // define if using USB_CDC for console and don't want delays when not plugged in
 //
-#define USB_CDC_NO_DELAY
+// #define USB_CDC_NO_DELAY
 // #define HAVE_FS
 #define FATFS
 #define MBED_TLS
@@ -65,7 +65,7 @@ void encrypt (int dir, uint8_t *key, uint8_t *iv, uint8_t *in, uint8_t *out, int
 #if defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32C3_DEV)
 HardwareSerial Serial2(1);
 #endif
-HardwareSerial HS [] = { Serial0, Serial1, Serial2 };
+HardwareSerial HS [] = {  Serial1, Serial2 };
 
 tbforth_stat c_handle(void) {
   RAMC r1 = dpop();

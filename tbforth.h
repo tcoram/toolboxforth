@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "3.02"
-#define DICT_VERSION 12
+#define TBFORTH_VERSION "3.021"
+#define DICT_VERSION 13
 
 /* 
    The Dictionary: Max is 64K words (64KB * 2 bytes). 
@@ -16,7 +16,7 @@
    This may, depending on your target architecture, live in RAM or Flash.
    Note: A Dictionary CELL is always 2 bytes!
 */
-#define MAX_DICT_CELLS 		(0xFFFF/4)
+#define MAX_DICT_CELLS 		(0xFFFF)
 
 
 /*

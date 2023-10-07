@@ -1,5 +1,7 @@
 \ console with minimal line editing (^c and backspace).
 \
+forget-to-mark CONSOLE
+mark CONSOLE
 
 tib constant TIB		( faster )
 

@@ -1,3 +1,4 @@
+forget-to-mark TESTS
 mark TESTS
 : test-do  1000000 0 do i drop loop ;
 : test-for  1000000 for r@ drop next ;

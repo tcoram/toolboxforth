@@ -7,7 +7,8 @@ tbforth-posix: tbforth-posix.o tbforth.o
 	$(CC) $(CFLAGS) -o tbforth-posix tbforth-posix.o  tbforth.o $(LDFLAGS) -lreadline -lm
 	echo "save-image tbforth.img" | ./tbforth-posix
 
-tbforth.o: tbforth.c
+
+tbforth.o: tbforth.c tbforth.h
 
 arduino-stage: tbforth-posix
 	cp tbforth.img.h tbforth.h tbforth.c arduino/esp32/toolboxforth

@@ -91,7 +91,7 @@ enum {
   HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
-  NEXT, CNEXT,  EXEC, LESS_THAN_ZERO, LESS_THAN, MAKE_TASK, SELECT_TASK,
+  NEXT, CNEXT,  EXEC, LESS_THAN, MAKE_TASK, SELECT_TASK,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
@@ -184,13 +184,13 @@ char* u32toa(uint32_t value, char* result, int32_t base) {
   return result;
 }
 
+CELL find_word(char* s, uint8_t len, RAMC* addr, bool *immediate, char *prim);
 /*
  Every entry in the dictionary consists of the following cells:
   [index of previous entry]  
   [flags, < 128 byte name byte count]
   [name [optional pad byte]... [ data ..]
 */
-CELL find_word(char* s, uint8_t len, RAMC* addr, bool *immediate, char *prim);
 
 void make_word(char *str, uint8_t str_len) {
   CELL my_head = dict_here();
@@ -320,6 +320,7 @@ void tbforth_load_prims(void) {
   store_prim("mod", MOD);
   store_prim("0=", EQ_ZERO);
   store_prim("=", EQ);
+  store_prim("<", LESS_THAN);
   store_prim("lit", LIT);
   store_prim("dlit", DLIT);
   store_prim(">r", RPUSH);
@@ -333,8 +334,6 @@ void tbforth_load_prims(void) {
   store_prim("(create)", _CREATE); 
   store_prim("(allot1)", VAR_ALLOT);
 
-  store_prim("make-task", MAKE_TASK);
-  store_prim("select-task", SELECT_TASK);
   store_prim("(find-code)", FIND);
   store_prim("(find-head)", FIND_ADDR);
   store_prim(",\"", COMMA_STRING); make_immediate();
@@ -351,8 +350,8 @@ void tbforth_load_prims(void) {
   store_prim(">string", NUM_TO_STR);
   store_prim("u>string", UNUM_TO_STR);
   store_prim("interpret", INTERP);
-  store_prim("<", LESS_THAN);
-  store_prim("<0", LESS_THAN_ZERO);
+  store_prim("make-task", MAKE_TASK);
+  store_prim("select-task", SELECT_TASK);
 }
 
 /* Return a counted string pointer
@@ -364,13 +363,13 @@ char* tbforth_count_str(CELL addr,CELL* new_addr) {
   return str;
 }
 
-/* Scratch/Register variables for exec */
-static RAMC r1, r2, r3, r4;
-static char *str1, *str2;
-static char b;
-static CELL cmd;
-
 tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
+  /* Scratch/Register variables for exec */
+  RAMC r1, r2, r3, r4;
+  char *str1, *str2;
+  char b;
+  CELL cmd;
+
   while(1) {
     if (wd_idx == 0) {
       tbforth_abort_request(ABORT_ILLEGAL);
@@ -443,10 +442,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush((((uint32_t)tbforth_dict[wd_idx])<<16) |
 	    (uint16_t)tbforth_dict[wd_idx+1]); 
       wd_idx+=2;
-      break;
-    case LESS_THAN_ZERO:
-      r1 = dpop();
-      dpush(r1 < 0);
       break;
     case LESS_THAN:
       r1 = dpop();

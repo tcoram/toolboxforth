@@ -227,18 +227,18 @@ variable _cc			\ keep track of # of characters on a line
 \ While you can do defer/is for constants too (constants are just "words")...
 \ you can modify a constant directly if you wish:
 \
-: re-constant 
-  postpone '  1+ dict! ;
+: re-constant  ( u -<name> ) postpone '  1+ dict! ;
 
 
 \ Place a marker
-\ Forget up to marker
 \
-: (forget-to-marker)  dup (find-head)
-		   dup if lwa dict! (find-code) exec (here) dict! else drop  then drop ;
-: forget-to-marker ( <marker> ) next-word (forget-to-marker) ;
-
 : mark ( <marker> ) create ;
+
+\ forget everything down to (and including) marker
+\
+: forget-to-mark ( <marker)  next-word dup (find-head)
+    dup if dict@ >r (find-code) exec (here) dict! r> lwa dict! else 2drop  then  ;
+
 
 : time-it ( addr - )
   ms >r exec ms r> - . ."  ms elapsed" cr ;

@@ -165,6 +165,8 @@
     [compile] ;
 ;
 
+\ constants are stored in dictionary and are thus limited to 16 bits.
+\
 : constant ( n -<name>- )
     (create)
     [compile] lit ,
@@ -172,6 +174,8 @@
 ; 
 
 
+\ dconstants are stored in dictionary as two 16 bit dictionary cells.
+\
 : dconstant ( d -<name>- )
     (create)
     [compile] dlit d,
