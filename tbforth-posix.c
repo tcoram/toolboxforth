@@ -93,7 +93,6 @@ bool config_close(void) {
   return 1;
 }
 
-void interpret_from(FILE *fp);
 
 
 void load_ext_words () {
@@ -182,16 +181,20 @@ tbforth_stat c_handle(void) {
     break;
   case OS_INCLUDE:			/* include */
     {
+      int interpret_from(FILE *fp);
       char *s = tbforth_next_word();
       strncpy(buf,s, tbforth_iram->tibwordlen+1);
       buf[tbforth_iram->tibwordlen] = '\0';
       printf("   Loading %s\n",buf);
       fp = fopen(buf, "r");
       if (fp != NULL) {
-	interpret_from(fp);
+	int stat = interpret_from(fp);
 	fclose(fp);
+	if (stat != 0)
+	  return E_ABORT;
       } else {
 	printf("File not found: <%s>\n", buf);
+	return E_ABORT;
       }
     }  
     break;
@@ -202,7 +205,7 @@ tbforth_stat c_handle(void) {
 
 static char linebuf[128];
 char *line;
-void interpret_from(FILE *fp) {
+int interpret_from(FILE *fp) {
   int stat;
   int16_t lineno = 0;
   while (!feof(fp)) {
@@ -226,43 +229,46 @@ void interpret_from(FILE *fp) {
 	  tbforth_iram->tibclen - 
 	  (tbforth_iram->tibwordidx + tbforth_iram->tibwordlen));
       txs0("\r\n");
-      break;
+      return -1;
     case E_ABORT:
       txs0("Abort!:<"); txs0(line); txs0(">\n");
-      break;
+      return -1;
     case E_STACK_UNDERFLOW:
       txs0("Stack underflow!\n");
-      break;
+      return -1;
     case E_DSTACK_OVERFLOW:
       txs0("Stack overflow!\n");
-      break;
+      return -1;
     case E_RSTACK_OVERFLOW:
       txs0("Return Stack overflow!\n");
-      break;
+      return -1;
     case U_OK:
       break;
     default:
       txs0("Ugh\n");
-      break;
+      return -1;
     }
   }
+  return 0;
 }
 
 #include <sys/types.h>
 #include <sys/stat.h>
 
-void load_f (char* fname) {
+int load_f (char* fname) {
+  int stat = -1;
   FILE *fp;
   printf("   Loading %s\n",fname);
   fp = fopen(fname, "r");
   if (fp != NULL) 
-    interpret_from(fp);
+    stat=interpret_from(fp);
   fclose(fp);
+  return stat;
 }
 
 
 int main(int argc, char* argv[]) {
-
+  int stat = -1;
   dict = malloc(sizeof(struct dict));
 
   dict->version = DICT_VERSION;
@@ -283,10 +289,10 @@ int main(int argc, char* argv[]) {
     tbforth_load_prims();
     load_ext_words();
 
-    load_f("./core.f");
-    load_f("./util.f");
-    load_f("./console.f");
-    load_f("./tests.f");
+    stat = load_f("./core.f");
+    if (stat == 0) stat = load_f("./util.f");
+    if (stat == 0) stat = load_f("./console.f");
+    if (stat == 0) stat = load_f("./tests.f");
   } else {
     if (config_open_r(argv[1])) {
       if (!config_read(dict))
@@ -294,10 +300,12 @@ int main(int argc, char* argv[]) {
       config_close();
     }
   }
-  tbforth_interpret ("mark USER-WORDS");
-  tbforth_interpret("init");
-  tbforth_interpret("cr memory cr");
-  interpret_from(stdin);
+  if (stat == 0) stat=tbforth_interpret ("mark USER-WORDS");
+  if (stat == 0) stat=tbforth_interpret("init");
+  if (stat == 0) stat=tbforth_interpret("cr memory cr");
+  do {
+    stat=interpret_from(stdin);
+  } while (stat != 0);
 
-  return 0;
+  return stat;
 }

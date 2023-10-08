@@ -662,6 +662,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r2 = parse_num(str1,tbforth_uram->base);
       if (!tbforth_aborting()) 
 	dpush(r2);
+      else return E_NOT_A_WORD;
       break;
     case FIND:
     case FIND_ADDR:

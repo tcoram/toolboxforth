@@ -6,6 +6,7 @@ mark TESTS
 : test-begin-again 1000000  _cc ! begin -1 _cc +! _cc @ 0= if exit then again ;
 : test-begin-until-stack 1000000 begin 1- dup 0= until ;
 
+
 : loop-tests
   ." testing do .. loop: "
   ['] test-do time-it 
