@@ -106,6 +106,13 @@ tbforth_stat c_handle(void) {
   static char buf[80*2];
 
   switch(r1) {
+  case OS_SECS:
+    {
+      time_t now;
+      time(&now);
+      dpush(now);
+    }
+    break;	
   case OS_MS:		/* milliseconds */
     {
       struct timeval tv;
@@ -280,9 +287,7 @@ int main(int argc, char* argv[]) {
 
   gettimeofday(&start_tv,0);
 
-
   tbforth_init();
-
 
   OUTFP = stdout;
   if (argc < 2) {

@@ -58,7 +58,7 @@
 /*
   RAM cell size is 4 bytes.
 */
-typedef int32_t RAMC;
+typedef uint32_t RAMC;
 
 
 
@@ -171,9 +171,10 @@ extern void tbforth_cdef (char* name, int val);
 // Some useful OS extensions...you can handle in c_handle() or not... its up to you
 //
 enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
-  OS_READB, OS_WRITEB, OS_MS};
+  OS_READB, OS_WRITEB, OS_MS, OS_SECS};
 
 #define OS_WORDS() \
+  tbforth_cdef("secs", OS_SECS); \
   tbforth_cdef("ms", OS_MS); \
   tbforth_cdef("emit", OS_EMIT); \
   tbforth_cdef("key", OS_KEY); \
@@ -203,11 +204,6 @@ enum {
   MCU_WDT_RESET,
   MCU_DELAY,
   MCU_GPIO_WAKE,
-  MCU_ENCRYPT,
-  MCU_DECRYPT,
-  MCU_ENCODE64,
-  MCU_DECODE64,
-  MCU_MAC,
   MCU_SLEEP
 };
 
@@ -230,9 +226,4 @@ enum {
   tbforth_cdef("wdt-rst", MCU_WDT_RESET); \
   tbforth_cdef("delay", MCU_DELAY); \
   tbforth_cdef("sleep", MCU_SLEEP); \
-  tbforth_cdef("gcm-encrypt", MCU_ENCRYPT); \
-  tbforth_cdef("gcm-decrypt", MCU_DECRYPT); \
-  tbforth_cdef("encode64", MCU_ENCODE64); \
-  tbforth_cdef("decode64", MCU_DECODE64); \
-  tbforth_cdef("mac", MCU_MAC); \
 
