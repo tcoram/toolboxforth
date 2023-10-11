@@ -132,7 +132,7 @@ RAMC parse_num(char *s, uint8_t base) {
   //
   RAMC num = strtol(p,&endptr, tbforth_uram->base == 10 ? 0 : tbforth_uram->base);
   tbforth_uram->base = curbase;
-  if (*endptr != 32  && *endptr != '\0') {
+  if (*endptr != 32  && *endptr != '\0' && *endptr != '\n' && *endptr != '\r') {
     tbforth_abort_request(ABORT_NAW);
   }
   return num;
@@ -599,7 +599,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case COMMA_STRING:
       if (tbforth_iram->state == COMPILING) {
 	dict_append(LIT);
-	dict_append(dict_here()+4); /* address of counted string */
+	dict_append(dict_here()+sizeof(RAMC)); /* address of counted string */
 
 	dict_append(LIT);
 	rpush(dict_here());	/* address holding adress  */
