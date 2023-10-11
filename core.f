@@ -320,9 +320,13 @@ variable _leaveloop
 
 : byte-allot ( n -- ) RAMC /mod + allot  ;
 
+\ Counted byte buffer
+\
+: cbyte-allot ( n --) 1 allot byte-allot ;
+    
 \ Allocate 160 bytes... should be enough...otherwise bump it up
 \
-variable pad 160 byte-allot
+variable pad 160 cbyte-allot
 variable _delim
 : word ( delim -- addr)
     _delim !

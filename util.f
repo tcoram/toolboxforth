@@ -110,8 +110,9 @@ variable _endof
 : type ( addr count - )
      0 do  dup i +c@ emit  loop drop ;
 
- : dict-type ( addr count - )
-     0 do  dup i +dict-c@ emit  loop drop ;
+: dict-type ( addr count - )
+    0 do  dup i +dict-c@ emit  loop drop ;
+
 
 : ."   compiling?
     if
@@ -243,3 +244,5 @@ variable _cc			\ keep track of # of characters on a line
 : time-it ( addr - )
   ms >r exec ms r> - . ."  ms elapsed" cr ;
 
+
+: init ;
