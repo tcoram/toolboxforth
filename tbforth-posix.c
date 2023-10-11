@@ -219,7 +219,7 @@ int interpret_from(FILE *fp) {
     ++lineno;
     if (fp == stdin) txs0(" ok\r\n");
     if (fp == stdin) {
-      line=rl_gets(); if (line==NULL) exit(0);
+      line=rl_gets(); if (line==NULL) return (0);
     } else {
       if (fgets(linebuf,128,fp) == NULL) break;
       line = linebuf;
@@ -274,6 +274,7 @@ int load_f (char* fname) {
 }
 
 
+const char* history_file = ".tbforth_history";
 int main(int argc, char* argv[]) {
   int stat = -1;
   dict = malloc(sizeof(struct dict));
@@ -286,6 +287,8 @@ int main(int argc, char* argv[]) {
   dict->varidx = 1;
 
   gettimeofday(&start_tv,0);
+
+  read_history(history_file);
 
   tbforth_init();
 
@@ -312,5 +315,6 @@ int main(int argc, char* argv[]) {
     stat=interpret_from(stdin);
   } while (stat != 0);
 
+  write_history(history_file);
   return stat;
 }
