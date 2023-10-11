@@ -138,14 +138,14 @@ variable _endof
 : debug-pre cr ." debug: " ;
 : debug  cr ."     stack -> [" .s ." ]" cr key drop ;
 : debug" [compile] debug-pre
-    postpone ," [compile] count [compile] type  [compile] debug ; immediate
+    postpone ," [compile] dict-count [compile] dict-type  [compile] debug ; immediate
 
 \ if not true, print out a string and abort to top level
 \
 : assert" ( f -- )
     [compile] 0=
     postpone if
-    postpone ," [compile] count [compile] type
+    postpone ," [compile] dict-count [compile] dict-type
     [compile] abort
     postpone then
 ; immediate
