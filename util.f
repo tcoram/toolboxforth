@@ -128,6 +128,7 @@ variable _endof
 : . ( n -- ) sidx 1+ exit-if0- >string count type 32 emit ;
 
 : u. ( u -- ) sidx 1+ exit-if0- u>string count type 32 emit ;
+: h. ( u -- ) hex u. decimal ;
 
 : .s
     [char] < emit sidx 1+ . [char] > emit 32 emit
@@ -225,10 +226,19 @@ variable _cc			\ keep track of # of characters on a line
     then
 ; immediate
 
-\ While you can do defer/is for constants too (constants are just "words")...
-\ you can modify a constant directly if you wish:
+\ Synonym of a constant...
 \
-: re-constant  ( u -<name> ) postpone '  1+ dict! ;
+: value constant ;
+
+\ While you can do defer/is for constants too (constants are just "words")...
+\ you can modify a constant directly if you wish.  
+\
+: to  ( u -<name> )
+    compiling? if
+	[compile] lit  postpone ' , [compile] 1+ [compile] dict!
+    else
+	postpone ' 1+ dict!
+    then ; immediate
 
 
 \ Place a marker
