@@ -12,24 +12,25 @@
 
 /* 
    The Dictionary: Max is 64K words (64KB * 2 bytes). 
-   Pick a size suitable for your target. Default is 32KB so to fit nicely in most MCUs.
+   Pick a size suitable for your target.
    This may, depending on your target architecture, live in RAM or Flash.
    Note: A Dictionary CELL is always 2 bytes!
 */
 #define MAX_DICT_CELLS 		(0xFFFF)
 
-
 /*
- Total user RAM (each ram cell is 4 bytes): includes pad and stacks
+ Total user RAM (each ram cell is 4 bytes): includes stacks
 */
-#define TOTAL_RAM_CELLS		(2048) /* 8KB */
-
-/*  PAD lives at the top of TOTAL_RAM_CELLS */
-#define PAD_SIZE		(40*4)  /* bytes */
+#define TOTAL_URAM_CELLS		(2048) /* 8KB */
 
 /* Data Stack and Return Stack sizes (1 cells = 4 byte) */
 #define DS_CELLS 		100
 #define RS_CELLS 		100
+
+/*
+ Input buffer... longest line you can give tbforth to interpret.
+*/
+#define PAD_SIZE		(160)  /* bytes */
 
 
 #define FIXED_PT_DIVISOR	((double)(1000000.0))
@@ -59,10 +60,8 @@
 typedef uint32_t RAMC;
 
 
-
 typedef enum { U_OK=0, COMPILING, E_NOT_A_WORD, E_STACK_UNDERFLOW, E_RSTACK_OVERFLOW,
 	       E_DSTACK_OVERFLOW, E_ABORT, E_EXIT } tbforth_stat;
-
 
 /*
  Abort reasons.

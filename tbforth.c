@@ -82,7 +82,7 @@ struct tbforth_uram *tbforth_uram;
 #define PRIM_BIT     (1<<6)
 
 
-RAMC tbforth_ram[TOTAL_RAM_CELLS];
+RAMC tbforth_ram[TOTAL_URAM_CELLS];
 
 // LIT must be 1!
 //
@@ -251,22 +251,19 @@ void tbforth_init(void) {
   tbforth_dict = (CELL*)dict;
   tbforth_iram = (struct tbforth_iram*) tbforth_ram;
   tbforth_iram->state = 0;
-  tbforth_iram->total_ram = TOTAL_RAM_CELLS;
+  tbforth_iram->total_ram = TOTAL_URAM_CELLS;
   tbforth_uram = (struct tbforth_uram*)
     (tbforth_ram + sizeof(struct tbforth_iram));
-  tbforth_uram->len = TOTAL_RAM_CELLS - sizeof(struct tbforth_iram);
-  tbforth_uram->base = 10;
+  tbforth_uram->len = TOTAL_URAM_CELLS - sizeof(struct tbforth_iram);
   tbforth_uram->dsize = DS_CELLS;
   tbforth_uram->rsize = RS_CELLS;
   tbforth_uram->ridx = DS_CELLS + RS_CELLS;
   tbforth_uram->didx = -1;
 
-
   tbforth_abort_clr();
   tbforth_abort();
 
   tbforth_uram->base = 10;
-
 }
 
 /* Bootstrap code */
