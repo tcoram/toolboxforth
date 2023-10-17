@@ -20,18 +20,16 @@
 
 
 /*
- Total user RAM (each ram cell is 4 bytes)
+ Total user RAM (each ram cell is 4 bytes): includes pad and stacks
 */
 #define TOTAL_RAM_CELLS		(2048) /* 8KB */
-#define PAD_SIZE		160  /* bytes */
-#define TIB_SIZE  PAD_SIZE
 
-/*
-  Task RAM -- Each cell is 4 bytes. This is a subset of TOTAL_RAM_CELLS
-*/
-#define TASK0_DS_CELLS 		150
-#define TASK0_RS_CELLS 		100
-#define TASK0_URAM_CELLS	500
+/*  PAD lives at the top of TOTAL_RAM_CELLS */
+#define PAD_SIZE		(40*4)  /* bytes */
+
+/* Data Stack and Return Stack sizes */
+#define DS_CELLS 		100
+#define RS_CELLS 		100
 
 
 #define FIXED_PT_DIVISOR	((double)(1000000.0))
@@ -107,7 +105,7 @@ struct tbforth_iram {
   RAMC tibwordidx;		/* point to current word in inbufptr */
   RAMC tibwordlen;	/* length of current word in inbufptr */
   RAMC tibclen;		      /* size of data in the tib buffer */
-  char tib[TIB_SIZE];		/* input buffer for interpreter */
+  char tib[PAD_SIZE];		/* input buffer for interpreter */
 };
 
 struct tbforth_uram {

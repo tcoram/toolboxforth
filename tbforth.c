@@ -91,7 +91,7 @@ enum {
   HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
-  NEXT, CNEXT,  EXEC, LESS_THAN, MAKE_TASK, SELECT_TASK,
+  NEXT, CNEXT,  EXEC, LESS_THAN,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
@@ -247,33 +247,21 @@ void store_prim(char* str, CELL val) {
 typedef tbforth_stat (*wfunct_t)(void);
 
 
-CELL tbforth_make_task (RAMC uram, 
-		       CELL ds,CELL rs,CELL rams) {
-  struct tbforth_uram* u = (struct tbforth_uram*)
-    (tbforth_ram + sizeof(struct tbforth_iram)+(uram*sizeof(RAMC)));
-  u->len = rams;
-  u->base = 10;
-  u->dsize = ds;
-  u->rsize = rs;
-  u->ridx = ds + rs;
-  u->didx = -1;
-  return 1;
-}
-
-void tbforth_select_task (CELL uram) {
-  tbforth_uram = (struct tbforth_uram*)
-    (tbforth_ram + sizeof(struct tbforth_iram)+(uram*sizeof(RAMC)));
-  tbforth_iram->curtask_idx = uram;
-}
-
 void tbforth_init(void) {
   tbforth_dict = (CELL*)dict;
   tbforth_iram = (struct tbforth_iram*) tbforth_ram;
   tbforth_iram->state = 0;
   tbforth_iram->total_ram = TOTAL_RAM_CELLS;
+  tbforth_uram = (struct tbforth_uram*)
+    (tbforth_ram + sizeof(struct tbforth_iram));
+  tbforth_uram->len = TOTAL_RAM_CELLS - sizeof(struct tbforth_iram);
+  tbforth_uram->base = 10;
+  tbforth_uram->dsize = DS_CELLS;
+  tbforth_uram->rsize = RS_CELLS;
+  tbforth_uram->ridx = DS_CELLS + RS_CELLS;
+  tbforth_uram->didx = -1;
 
-  tbforth_make_task(0,TASK0_DS_CELLS,TASK0_RS_CELLS,TASK0_URAM_CELLS);
-  tbforth_select_task(0);
+
   tbforth_abort_clr();
   tbforth_abort();
 
@@ -350,8 +338,6 @@ void tbforth_load_prims(void) {
   store_prim(">string", NUM_TO_STR);
   store_prim("u>string", UNUM_TO_STR);
   store_prim("interpret", INTERP);
-  store_prim("make-task", MAKE_TASK);
-  store_prim("select-task", SELECT_TASK);
 }
 
 /* Return a counted string pointer
@@ -365,7 +351,7 @@ char* tbforth_count_str(CELL addr,CELL* new_addr) {
 
 tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
   /* Scratch/Register variables for exec */
-  RAMC r1, r2, r3, r4;
+  RAMC r1, r2, r3;
   char *str1, *str2;
   char b;
   CELL cmd;
@@ -400,7 +386,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush (0);
       break;
     case URAM_BASE_ADDR:
-      dpush((sizeof(struct tbforth_iram)) + tbforth_iram->curtask_idx);
+      dpush(sizeof(struct tbforth_iram));
       break;
     case SKIP_IF_ZERO:
       r1 = dpop(); r2 = dpop();
@@ -716,17 +702,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case INTERP:
       dpush (interpret_tib());
       break;
-    case MAKE_TASK:
-      r1 = dpop();
-      r2 = dpop();
-      r3 = dpop();
-      r4 = dpop();
-      tbforth_make_task(r1, r2, r3, r4);
-      dpush(r1);
-      break;
-    case SELECT_TASK:
-      tbforth_select_task(dpop());
-      break;
     default:
       tbforth_abort_request(ABORT_ILLEGAL);
       break;
@@ -844,7 +819,7 @@ tbforth_stat interpret_tib() {
 
 tbforth_stat tbforth_interpret(char *str) {
   CLEAR_TIB();
-  tbforth_iram->tibclen = min(TIB_SIZE, strlen(str)+1);
+  tbforth_iram->tibclen = min(PAD_SIZE, strlen(str)+1);
   memcpy(tbforth_iram->tib, str, tbforth_iram->tibclen);
   return interpret_tib();
 }

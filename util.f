@@ -159,16 +159,14 @@ variable _endof
     maxdict . ." cells."
     ."  (" here 100 * maxdict / . ." % used)." cr
     9 emit
-    ." System RAM : " ramsize . ." cells (" ramsize wordsize * . ." bytes)" cr
+    ." Total RAM : " ramsize . ." cells (" ramsize wordsize * . ." bytes)" cr
     9 emit
-    ." Task Data Stack: " dslen . ." cells. " 
-    ." Task Return Stack: " rslen . ." cells."  cr
+    ." Data Stack: " dslen . ." cells. " 
+    ." Return Stack: " rslen . ." cells."  cr
     9 emit
-    ." Task RAM: " uram-top@ .
+    ." User RAM: " uram-top@ .
     ." cells (" uram-top@ wordsize * . ." bytes) used out of " uram-size .
     ." cells" cr ;
-
-
 
 \ Words
 \

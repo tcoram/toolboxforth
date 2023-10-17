@@ -243,6 +243,13 @@ tbforth_stat c_handle(void) {
     }
     break;
 #endif
+  case OS_SECS:
+    {
+      time_t now;
+      time(&now);
+      dpush(now);
+    }
+    break;
   case OS_MS:		/* milliseconds */
     dpush(millis());
     break;
