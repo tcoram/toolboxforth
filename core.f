@@ -72,11 +72,11 @@
 
 \ Terminal input buffer...
 \
-: tibidx iram 4 + ;
-: tibwordidx iram 5 + ;
-: tibwordlen iram 6 + ;
-: tib iram 7 + ;		( starts with cnt... )
-: tibbuf iram 8 + ;
+: tibidx iram 3 + ;
+: tibwordidx iram 4 + ;
+: tibwordlen iram 5 + ;
+: tib iram 6 + ;		( starts with cnt... )
+: tibbuf iram 7 + ;
 
 \ Works but much slower than builtin C version
 \ : rpick  dsa ridx + 1+ 1+ + @ ;

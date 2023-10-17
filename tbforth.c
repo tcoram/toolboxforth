@@ -45,7 +45,11 @@
 #define URAM_HDR_BYTES (RAMC)(sizeof(struct tbforth_uram))/sizeof(RAMC)
 #define VAR_ALLOT(n) (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(n))
 #define VAR_ALLOT_1() (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(1))
+
+// PAD is allocated at the top of RAM and IS NOT protected... 
+//
 #define PAD_ADDR (tbforth_iram->total_ram - PAD_SIZE)
+
 #define PAD_STR (char*)&tbforth_ram[PAD_ADDR+1]
 #define PAD_STRLEN tbforth_ram[PAD_ADDR]
 
