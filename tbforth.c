@@ -43,15 +43,19 @@
 
 #define IRAM_BYTES (RAMC)(sizeof(struct tbforth_iram))/sizeof(RAMC)
 #define URAM_HDR_BYTES (RAMC)(sizeof(struct tbforth_uram))/sizeof(RAMC)
-#define VAR_ALLOT(n) (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(n))
+#define URAM_START (IRAM_BYTES+URAM_HDR_BYTES)
+#define VAR_ALLOTN(n) (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(n))
 #define VAR_ALLOT_1() (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(1))
 
-// PAD is allocated at the top of RAM and IS NOT protected... 
-//
-#define PAD_ADDR (tbforth_iram->total_ram - PAD_SIZE)
-
+#if 1
+#define PAD_ADDR (IRAM_BYTES+URAM_HDR_BYTES)
 #define PAD_STR (char*)&tbforth_ram[PAD_ADDR+1]
 #define PAD_STRLEN tbforth_ram[PAD_ADDR]
+#else
+#define PAD_ADDR (tbforth_iram->total_ram - PAD_SIZE)
+#define PAD_STR (char*)&tbforth_ram[PAD_ADDR+1]
+#define PAD_STRLEN tbforth_ram[PAD_ADDR]
+#endif
 
 #ifdef USE_LITTLE_ENDIAN
 # define BYTEPACK_FIRST(b) b
@@ -260,7 +264,7 @@ void tbforth_init(void) {
   tbforth_uram->rsize = RS_CELLS;
   tbforth_uram->ridx = DS_CELLS + RS_CELLS;
   tbforth_uram->didx = -1;
-
+  
   tbforth_abort_clr();
   tbforth_abort();
 
@@ -337,6 +341,8 @@ void tbforth_load_prims(void) {
   store_prim("u>string", UNUM_TO_STR);
   store_prim("interpret", INTERP);
   store_prim("cf", CALLC);
+
+  VAR_ALLOTN(PAD_SIZE);
 }
 
 /* Return a counted string pointer

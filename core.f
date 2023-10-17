@@ -324,9 +324,8 @@ variable _leaveloop
 \
 : cbyte-allot ( n --) 1 allot byte-allot ;
     
-\ Allocate 160 bytes... should be enough...otherwise bump it up
-\
-variable pad 160 cbyte-allot
+uram 6 + dslen + rslen + constant pad
+
 variable _delim
 : word ( delim -- addr)
     _delim !
