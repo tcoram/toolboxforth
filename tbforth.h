@@ -19,9 +19,10 @@
 #define MAX_DICT_CELLS 		(0xFFFF)
 
 /*
- Total user RAM (each ram cell is 4 bytes): includes stacks
+ Total user RAM (each ram cell is 4 bytes): includes stacks and (Scratch) PAD
 */
 #define TOTAL_URAM_CELLS		(2048) /* 8KB */
+#define PAD_SIZE		(1024)  /* bytes */
 
 /* Data Stack and Return Stack sizes (1 cells = 4 byte) */
 #define DS_CELLS 		100
@@ -30,8 +31,7 @@
 /*
  Input buffer... longest line you can give tbforth to interpret.
 */
-#define PAD_SIZE		(160)  /* bytes */
-
+#define TIB_SIZE		(160)  /* bytes */
 
 #define FIXED_PT_DIVISOR	((double)(1000000.0))
 #define FIXED_PT_PLACES		6
@@ -103,7 +103,7 @@ struct tbforth_iram {
   RAMC tibwordidx;		/* point to current word in inbufptr */
   RAMC tibwordlen;	/* length of current word in inbufptr */
   RAMC tibclen;		      /* size of data in the tib buffer */
-  char tib[PAD_SIZE];		/* input buffer for interpreter */
+  char tib[TIB_SIZE];		/* input buffer for interpreter */
 };
 
 struct tbforth_uram {
@@ -200,6 +200,9 @@ enum {
   MCU_WDT_RESET,
   MCU_DELAY,
   MCU_GPIO_WAKE,
+  MCU_ENCRYPT,
+  MCU_DECRYPT,
+  MCU_MAC,
   MCU_SLEEP
 };
 
@@ -222,4 +225,7 @@ enum {
   tbforth_cdef("wdt-rst", MCU_WDT_RESET); \
   tbforth_cdef("delay", MCU_DELAY); \
   tbforth_cdef("sleep", MCU_SLEEP); \
+  tbforth_cdef("gcm-encrypt", MCU_ENCRYPT); \
+  tbforth_cdef("gcm-decrypt", MCU_DECRYPT); \
+  tbforth_cdef("mac", MCU_MAC); \
 

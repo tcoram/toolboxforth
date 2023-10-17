@@ -41,9 +41,6 @@
 #define DICT_HEADER_WORDS	6 /* version + max_cells + here + .. */
 #define DICT_INFO_SIZE_BYTES	(sizeof(CELL)*DICT_HEADER_WORDS)
 
-
-
-
 #define IRAM_BYTES (RAMC)(sizeof(struct tbforth_iram))/sizeof(RAMC)
 #define URAM_HDR_BYTES (RAMC)(sizeof(struct tbforth_uram))/sizeof(RAMC)
 #define VAR_ALLOT(n) (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(n))
