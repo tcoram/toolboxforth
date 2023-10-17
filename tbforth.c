@@ -47,15 +47,9 @@
 #define VAR_ALLOTN(n) (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(n))
 #define VAR_ALLOT_1() (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(1))
 
-#if 1
 #define PAD_ADDR (IRAM_BYTES+URAM_HDR_BYTES)
 #define PAD_STR (char*)&tbforth_ram[PAD_ADDR+1]
 #define PAD_STRLEN tbforth_ram[PAD_ADDR]
-#else
-#define PAD_ADDR (tbforth_iram->total_ram - PAD_SIZE)
-#define PAD_STR (char*)&tbforth_ram[PAD_ADDR+1]
-#define PAD_STRLEN tbforth_ram[PAD_ADDR]
-#endif
 
 #ifdef USE_LITTLE_ENDIAN
 # define BYTEPACK_FIRST(b) b
@@ -368,13 +362,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       return E_NOT_A_WORD;
     }
     cmd = tbforth_dict[wd_idx++];
-
-    if (cmd > LAST_PRIMITIVE) {
-      /* Execute user word by calling until we reach primitives */
-      rpush(wd_idx);
-      wd_idx = tbforth_dict[wd_idx-1]; /* wd_idx-1 is current word */
-      goto CHECK_STAT;
-    }
 
     switch (cmd) {
     case 0:
@@ -711,10 +698,16 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush (interpret_tib());
       break;
     default:
-      tbforth_abort_request(ABORT_ILLEGAL);
+      if (cmd > LAST_PRIMITIVE) {
+	/* Execute user word by calling until we reach primitives */
+	rpush(wd_idx);
+	wd_idx = tbforth_dict[wd_idx-1]; /* wd_idx-1 is current word */
+	//	goto CHECK_STAT;
+      } else {
+	tbforth_abort_request(ABORT_ILLEGAL);
+      }
       break;
     }
-  CHECK_STAT:
     if (tbforth_aborting()) {
       tbforth_abort();
       return E_ABORT;
