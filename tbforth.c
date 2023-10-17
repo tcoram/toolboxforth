@@ -31,12 +31,7 @@
 #define min(a,b) ((a < b) ? a : b)
 
 
-// ------------------- END: Stuff to tweak...
-
-
-
 #define BYTES_PER_CELL sizeof(CELL)
-
 
 #define DICT_HEADER_WORDS	6 /* version + max_cells + here + .. */
 #define DICT_INFO_SIZE_BYTES	(sizeof(CELL)*DICT_HEADER_WORDS)
@@ -184,13 +179,13 @@ char* u32toa(uint32_t value, char* result, int32_t base) {
 }
 
 CELL find_word(char* s, uint8_t len, RAMC* addr, bool *immediate, char *prim);
+
 /*
  Every entry in the dictionary consists of the following cells:
   [index of previous entry]  
   [flags, < 128 byte name byte count]
   [name [optional pad byte]... [ data ..]
 */
-
 void make_word(char *str, uint8_t str_len) {
   CELL my_head = dict_here();
 
@@ -426,8 +421,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case LESS_THAN:
       r1 = dpop();
-      r2 = dpop();
-      dpush(r2 < r1);
+      dtop() = (dtop() < r1);
       break;
     case INCR:
       dtop()++; 
@@ -436,47 +430,47 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dtop()--; 
       break;
     case ADD:
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r1+r2;
+      r1 = dpop();
+      dtop() += r1;
       break;
     case SUB:
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r2-r1;
+      r1 = dpop();
+      dtop() -= r1;
       break;
     case AND:
-      r1 = dpop(); r2 = dtop();
-      dtop() = r1&r2;
+      r1 = dpop();
+      dtop() &= r1;
       break;
     case LSHIFT:
-      r1 = dpop(); r2 = dtop();
-      dtop() = r2<<r1;
+      r1 = dpop(); 
+      dtop() <<= r1;
       break;
     case RSHIFT:
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r2>>r1;
+      r1 = dpop();
+      dtop() >>= r1;
       break;
     case OR:
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r1|r2;
+      r1 = dpop(); 
+      dtop() |= r1;
       break;
     case XOR:
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r1^r2;
+      r1 = dpop(); 
+      dtop() ^= r1;
       break;
     case INVERT:
       dtop() = ~dtop();
       break;
     case MULT:
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r1*r2;
+      r1 = dpop(); 
+      dtop() *= r1;
       break;
     case DIV :
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r2/r1;
+      r1 = dpop(); 
+      dtop() /= r1;
       break;
     case MOD :
-      r1 = dpop(); r2 = dtop(); 
-      dtop() = r2%r1;
+      r1 = dpop();
+      dtop() %= r1;
       break;
     case RPICK:
       r1 = dpop();
@@ -487,8 +481,8 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dtop() = (dtop() == 0);
       break;
     case EQ:
-      r1 = dpop(); r2 = dpop();
-      dpush (r1 == r2);
+      r1 = dpop(); 
+      dtop() =  (r1 == dtop());
       break;
     case RPUSH:
       rpush(dpop());
