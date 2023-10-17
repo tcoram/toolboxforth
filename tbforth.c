@@ -87,7 +87,7 @@ RAMC tbforth_ram[TOTAL_RAM_CELLS];
 // LIT must be 1!
 //
 enum { 
-  LIT=1, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
+  LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
   HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
@@ -275,7 +275,9 @@ void tbforth_load_prims(void) {
   /*
     Store our primitives into the dictionary.
   */
-  store_prim("cf", CALLC);
+  store_prim("lit", LIT);
+  store_prim("cold", COLD);
+  store_prim("here", HERE);
   store_prim("uram", URAM_BASE_ADDR);
   store_prim("iram", RAM_BASE_ADDR);
   store_prim("immediate", IMMEDIATE);
@@ -292,7 +294,6 @@ void tbforth_load_prims(void) {
   store_prim("exec", EXEC);
   store_prim(",", COMMA);
   store_prim("d,", DCOMMA);
-  store_prim(">num", PARSE_NUM);
   store_prim("1+", INCR);
   store_prim("1-", DECR);
   store_prim("+", ADD);
@@ -309,7 +310,6 @@ void tbforth_load_prims(void) {
   store_prim("0=", EQ_ZERO);
   store_prim("=", EQ);
   store_prim("<", LESS_THAN);
-  store_prim("lit", LIT);
   store_prim("dlit", DLIT);
   store_prim(">r", RPUSH);
   store_prim("r>", RPOP);
@@ -321,11 +321,11 @@ void tbforth_load_prims(void) {
   store_prim(":", DEF); 
   store_prim("(create)", _CREATE); 
   store_prim("(allot1)", VAR_ALLOT);
-
   store_prim("(find-code)", FIND);
   store_prim("(find-head)", FIND_ADDR);
   store_prim(",\"", COMMA_STRING); make_immediate();
   store_prim("postpone", POSTPONE); make_immediate();
+
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
   store_prim("+c!", CHAR_STORE);
@@ -333,11 +333,12 @@ void tbforth_load_prims(void) {
   store_prim("+c@", CHAR_FETCH);
   store_prim("bcopy", BYTE_COPY);
   store_prim("+dict-c@", DCHAR_FETCH);
-  store_prim("here", HERE);
   store_prim("substr", SUBSTR);
   store_prim(">string", NUM_TO_STR);
+  store_prim(">num", PARSE_NUM);
   store_prim("u>string", UNUM_TO_STR);
   store_prim("interpret", INTERP);
+  store_prim("cf", CALLC);
 }
 
 /* Return a counted string pointer
@@ -420,6 +421,9 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case HERE:
       dpush(dict_here());
+      break;
+    case COLD:
+      tbforth_init();
       break;
     case LIT:  
       dpush(tbforth_dict[wd_idx++]);

@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "3.021"
-#define DICT_VERSION 13
+#define TBFORTH_VERSION "3.022"
+#define DICT_VERSION 14
 
 /* 
    The Dictionary: Max is 64K words (64KB * 2 bytes). 
@@ -100,7 +100,6 @@ struct tbforth_iram {
   RAMC state;		/* 0=interpreting .. */
   RAMC total_ram;		/* Total ram available */
   RAMC compiling_word;	 /* 0=none */
-  RAMC curtask_idx;
   RAMC tibidx;		      /* current index into buffer */
   RAMC tibwordidx;		/* point to current word in inbufptr */
   RAMC tibwordlen;	/* length of current word in inbufptr */
