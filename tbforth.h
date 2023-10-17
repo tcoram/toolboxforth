@@ -27,7 +27,7 @@
 /*  PAD lives at the top of TOTAL_RAM_CELLS */
 #define PAD_SIZE		(40*4)  /* bytes */
 
-/* Data Stack and Return Stack sizes */
+/* Data Stack and Return Stack sizes (1 cells = 4 byte) */
 #define DS_CELLS 		100
 #define RS_CELLS 		100
 

@@ -50,10 +50,10 @@ All numbers are stored in RAM as 32 bits.  Characters and strings are packed int
 32 bit cells, so they have special access words like +c! +c@ and bcopy, where you
 must provide an "index" (byte count) into the 32 bit words.
 
-It has the concept of "tasks", but that code isn't completed yet...
 
 This C code is gnarly, but defines just enough FORTH to bootstrap a more usable FORTH.
 See *.f files for more insight into this opinionated implementation...
+Some words that could be coded in FORTH are left implemented in C mainly for speed...
 
 The FORTH code has direct (via indexing) access to the critical RAM and dictionary
 structures/pointers in the C code via @ and dict@ respectively. Take a look at core.f.
@@ -67,8 +67,8 @@ erase words down to a "marker".  See util.f for an example using a marker called
 
 ```
 : mark ( <name> ) create ;
-: forget-to-marker ( <marker> ) next-word dup (find-head)
-		   dup if lwa dict! (find-code) exec (here) dict! else drop  then drop ;
+: forget-to-mark ( <marker)  next-word dup (find-head)
+    dup if dict@ >r (find-code) exec (here) dict! r> lwa dict! else 2drop  then  ;
 ```
 
 Yeah, that's gnarly. No documentation yet, but the best way to explore is to start
@@ -93,6 +93,10 @@ You will need libreadline for the POSIX build...
 
 This repo is mainly for my own "backup" and for the morbidly curious...
 as it is moving/evolving rapidly.
+
+## Next Up?
+
+Looking into implementing blocks and a simple line editor...
 
 ## Who? What?
 
