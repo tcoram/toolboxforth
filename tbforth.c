@@ -91,7 +91,7 @@ enum {
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
   BYTE_COPY, BYTE_CMP,
   POSTPONE, _CREATE, PARSE_NUM,
-  INTERP, SUBSTR, NUM_TO_STR, UNUM_TO_STR,
+  INTERP, NUM_TO_STR, UNUM_TO_STR,
   LAST_PRIMITIVE
 };
 
@@ -264,7 +264,8 @@ void tbforth_init(void) {
 void tbforth_load_prims(void) {
   dict->here = DICT_HEADER_WORDS+1;
   /*
-    Store our primitives into the dictionary.
+    Store our primitives into the dictionary as "callable" words (for interpret).
+    (During compilation references to these word definitions are optimized away).
   */
   store_prim("lit", LIT);
   store_prim("cold", COLD);
@@ -326,13 +327,14 @@ void tbforth_load_prims(void) {
   store_prim("bcopy", BYTE_COPY);
   store_prim("bstr=", BYTE_CMP);
   store_prim("+dict-c@", DCHAR_FETCH);
-  store_prim("substr", SUBSTR);
   store_prim(">string", NUM_TO_STR);
   store_prim(">num", PARSE_NUM);
   store_prim("u>string", UNUM_TO_STR);
   store_prim("interpret", INTERP);
   store_prim("cf", CALLC);
 
+  // Allocate the scratch pad
+  //
   VAR_ALLOTN(PAD_SIZE);
 }
 
@@ -676,21 +678,11 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	tbforth_abort();
 	return E_NOT_A_WORD;
       }
-      if (b) {
+      if (b) {			/* optimize for primitives... */
 	dict_append(tbforth_dict[r1]);
       } else {
 	dict_append(r1);
       }
-      break;
-    case SUBSTR:		/* return a substring of the tbforth string */
-      r1 = dpop();		/* addr */
-      r2 = dpop();		/* length */
-      r3 = dpop();		/* start */
-      str1 = tbforth_count_str(r1,(CELL*)&r1);
-      if (r1 < r2) r2 = r1;
-      PAD_STRLEN = r2;
-      memcpy(PAD_STR, str1 + r3, r2);
-      dpush(PAD_ADDR);
       break;
     case UNUM_TO_STR:
     case NUM_TO_STR:			/* 32bit to string */
