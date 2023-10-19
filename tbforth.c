@@ -84,7 +84,7 @@ enum {
   LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
   HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
-  OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
+  OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
@@ -301,6 +301,8 @@ void tbforth_load_prims(void) {
   store_prim("*/", MULT_DIV);
   store_prim("mod", MOD);
   store_prim("0=", EQ_ZERO);
+  store_prim("0>", GT_ZERO);
+  store_prim("0<=", LT_EQ_ZERO);
   store_prim("=", EQ);
   store_prim("<", LESS_THAN);
   store_prim("dlit", DLIT);
@@ -335,7 +337,7 @@ void tbforth_load_prims(void) {
 
   // Allocate the scratch pad
   //
-  VAR_ALLOTN(PAD_SIZE);
+  (void)VAR_ALLOTN(PAD_SIZE);
 }
 
 /* Return a counted string pointer
@@ -349,7 +351,7 @@ char* tbforth_count_str(CELL addr,CELL* new_addr) {
 
 tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
   /* Scratch/Register variables for exec */
-  RAMC r1, r2, r3;
+  RAMC r1, r2;
   char *str1, *str2;
   char b;
   CELL cmd;
@@ -492,6 +494,12 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case EQ_ZERO:
       dtop() = (dtop() == 0);
+      break;
+    case GT_ZERO:
+      dtop() = (dtop() > 0);
+      break;
+    case LT_EQ_ZERO:
+      dtop() = (dtop() <= 0);
       break;
     case EQ:
       r1 = dpop(); 

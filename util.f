@@ -108,10 +108,10 @@ variable _endof
 ; immediate
 
 : type ( addr count - )
-     0 do  dup i +c@ emit  loop drop ;
+     dup 0> if 0 do  dup i +c@ emit  loop else drop then drop ;
 
 : dict-type ( addr count - )
-    0 do  dup i +dict-c@ emit  loop drop ;
+    dup 0> if 0 do  dup i +dict-c@ emit  loop else drop then drop ;
 
 
 : ."   compiling?

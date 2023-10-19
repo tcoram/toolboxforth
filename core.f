@@ -148,7 +148,6 @@
 ; immediate
 
 
-
 \ A create that simply returns address of here after created word.
 \
 : create
@@ -164,6 +163,7 @@
     (allot1) ,
     [compile] ;
 ;
+
 
 \ constants are stored in dictionary and are thus limited to 16 bits.
 \
@@ -324,13 +324,20 @@ variable _leaveloop
 \
 : cbyte-allot ( n --) 1 allot byte-allot ;
     
+\ Point to internally allocated (scratch) PAD
+\
 uram 6 + dslen + rslen + constant pad
 
-variable _delim
+\ Scratch variable (be careful, it doesn't nest and may be modified by anyone)
+\
+variable A
+
+\ Implement traditional forth "word" using the scratch pad.
+\
 : word ( delim -- addr)
-    _delim !
+    A !
     0 pad !
     begin
-	next-char dup _delim @ = over 0= or if drop pad exit then
+	next-char dup A @ = over 0= or if drop pad exit then
 	pad c!+
     again ;
