@@ -9,6 +9,12 @@ since 2009 (under the name uForth). Back then, I used it primarily on an MSP430.
 Today it targets the ESP32, Arduino 32 bit (Cortex M)  and POSIX compliant operating systems.  Backport to MSP430
 coming soon!!!
 
+This is a 32 bit FORTH with a 16 bit dictionary.  What this means is that the
+dictionary "op codes" are 16 bit but numbers (RAM, stacks) are 32 bits.  Special provision
+is made for storing 32 bit numbers into the dictionary...
+
+The end result: This makes for a more compacted application that fits on smaller MCUs.
+
 ## Features
 
 * ROMable. The dictionary and RAM are separate address spaces (even if dictionary is in RAM).
