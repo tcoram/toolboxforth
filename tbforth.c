@@ -33,7 +33,7 @@
 
 #define BYTES_PER_CELL sizeof(CELL)
 
-#define DICT_HEADER_WORDS	6 /* version + max_cells + here + .. */
+#define DICT_HEADER_WORDS	((sizeof(struct dict)/(sizeof (CELL))) - MAX_DICT_CELLS)
 #define DICT_INFO_SIZE_BYTES	(sizeof(CELL)*DICT_HEADER_WORDS)
 
 #define IRAM_BYTES (RAMC)(sizeof(struct tbforth_iram))/sizeof(RAMC)
@@ -89,7 +89,7 @@ enum {
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
-  BYTE_COPY,
+  BYTE_COPY, BYTE_CMP,
   POSTPONE, _CREATE, PARSE_NUM,
   INTERP, SUBSTR, NUM_TO_STR, UNUM_TO_STR,
   LAST_PRIMITIVE
@@ -262,6 +262,7 @@ void tbforth_init(void) {
 
 /* Bootstrap code */
 void tbforth_load_prims(void) {
+  printf("DICT_HEADER_WRODS=%d,%d\n", DICT_HEADER_WORDS,sizeof(struct dict));
   dict->here = DICT_HEADER_WORDS+1;
   /*
     Store our primitives into the dictionary.
@@ -323,6 +324,7 @@ void tbforth_load_prims(void) {
   store_prim("c!+", CHAR_APPEND);
   store_prim("+c@", CHAR_FETCH);
   store_prim("bcopy", BYTE_COPY);
+  store_prim("bstr=", BYTE_CMP);
   store_prim("+dict-c@", DCHAR_FETCH);
   store_prim("substr", SUBSTR);
   store_prim(">string", NUM_TO_STR);
@@ -529,6 +531,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush(0xFF & *str1);
       break;
     case BYTE_COPY:
+    case BYTE_CMP:
       {
 	RAMC from, dest, fidx, didx, cnt;
 	cnt = dpop();
@@ -538,7 +541,10 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	from  = dpop();
 	str1 = (char*)&tbforth_ram[from] + fidx;
 	str2 = (char*)&tbforth_ram[dest] + didx;
-	memcpy (str2, str1, cnt);
+	if (cmd == BYTE_CMP)
+	  dpush(memcmp (str2, str1, cnt) == 0);
+	else
+	  memcpy (str2, str1, cnt);
       }
       break;
     case DCHAR_FETCH:
