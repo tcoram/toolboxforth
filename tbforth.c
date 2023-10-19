@@ -83,7 +83,7 @@ RAMC tbforth_ram[TOTAL_URAM_CELLS];
 enum { 
   LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
   HERE, RAM_BASE_ADDR, INCR, DECR,
-  ADD, SUB, MULT, DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
+  ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
@@ -262,7 +262,6 @@ void tbforth_init(void) {
 
 /* Bootstrap code */
 void tbforth_load_prims(void) {
-  printf("DICT_HEADER_WRODS=%d,%d\n", DICT_HEADER_WORDS,sizeof(struct dict));
   dict->here = DICT_HEADER_WORDS+1;
   /*
     Store our primitives into the dictionary.
@@ -298,6 +297,7 @@ void tbforth_load_prims(void) {
   store_prim("rshift", RSHIFT);
   store_prim("*", MULT);
   store_prim("/", DIV);
+  store_prim("*/", MULT_DIV);
   store_prim("mod", MOD);
   store_prim("0=", EQ_ZERO);
   store_prim("=", EQ);
@@ -469,6 +469,15 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case DIV :
       r1 = dpop(); 
       dtop() /= r1;
+      break;
+    case MULT_DIV :
+      {
+	uint64_t tmp;
+	r1 = dpop(); r2 = dpop();
+	tmp = r1 * r2;
+	r1 = dpop();
+	dpush(tmp/r1);
+      }
       break;
     case MOD :
       r1 = dpop();
