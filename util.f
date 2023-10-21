@@ -211,6 +211,9 @@ variable _cc			\ keep track of # of characters on a line
     [compile] ;
 ;
 
+
+\ bug.. this doesn't work for primitves!! ???
+\
 : is ( xt --)
     compiling? if
 	[compile] lit
