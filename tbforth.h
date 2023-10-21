@@ -7,7 +7,7 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "3.023"
+#define TBFORTH_VERSION "3.024"
 #define DICT_VERSION 15
 
 /* 

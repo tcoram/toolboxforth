@@ -425,10 +425,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	    (uint16_t)tbforth_dict[wd_idx+1]); 
       wd_idx+=2;
       break;
-    case LESS_THAN:
-      r1 = dpop();
-      dtop() = (dtop() < r1);
-      break;
     case INCR:
       dtop()++; 
       break;
@@ -493,17 +489,21 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush(r2);
       break;
     case EQ_ZERO:
-      dtop() = (dtop() == 0);
+      dtop() = -(dtop() == 0);
       break;
     case GT_ZERO:
-      dtop() = (dtop() > 0);
+      dtop() = -(dtop() > 0);
       break;
     case LT_EQ_ZERO:
-      dtop() = (dtop() <= 0);
+      dtop() = -(dtop() <= 0);
+      break;
+    case LESS_THAN:
+      r1 = dpop();
+      dtop() = -(dtop() < r1);
       break;
     case EQ:
       r1 = dpop(); 
-      dtop() =  (r1 == dtop());
+      dtop() = -(r1 == dtop());
       break;
     case RPUSH:
       rpush(dpop());
