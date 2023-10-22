@@ -135,11 +135,6 @@ variable _endof
     sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . loop ;
 
 
-\ Step debugger... print out message, stack and wait for a key to continue.
-\   a 'q' exits the current definition
-\
-: (.s-step) cr dict-type  [char] : emit 32 emit .s  key [char] q = if r> exit then ;
-: .s-step" postpone s" [compile] (.s-step) ; immediate
 
 
 \ if not true, print out a string and abort to top level
@@ -256,5 +251,11 @@ variable _cc			\ keep track of # of characters on a line
 : time-it ( addr - )
   ms >r exec ms r> - . ."  ms elapsed" cr ;
 
+\ Step debugger... print out message, stack and wait for a key to continue.
+\   a 'q' exits the current definition
+\
+0 value DEBUG
+: (.s-step) cr dict-type  [char] : emit 32 emit .s  key [char] q = if r> exit then ;
+: .s-step" postpone s" [compile] (.s-step) ; immediate
 
 : init ;
