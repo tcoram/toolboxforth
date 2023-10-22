@@ -57,7 +57,7 @@
 /*
   RAM cell size is 4 bytes.
 */
-typedef uint32_t RAMC;
+typedef int32_t RAMC;
 
 
 typedef enum { U_OK=0, COMPILING, E_NOT_A_WORD, E_NOT_A_NUM,

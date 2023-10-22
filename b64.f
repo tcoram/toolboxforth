@@ -49,31 +49,31 @@ defer +b64dc@
 
     
 variable bitsbuff
+variable b64len
 
 : alphabase ( u -- c ) $3F and ," ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" 1+ swap  +dict-c@ ;
 : storecode ( u f -- ) if drop 61 else alphabase then  b64pt c!+  ;
 
-: 3bytesin ( addr idx -- cnt)
+: 3bytesin ( addr idx -- addr cnt)
    0 bitsbuff !
    3 0 do
       2dup i +  +b64dc@ bitsbuff @ 8 lshift + bitsbuff !
    loop  
-   3 -
-;
+   b64len @  swap - ;
 
-: 4chars, ( n -- ) ( n=# of bytes )
+: 4chars! ( n -- ) ( n=# of bytes )
    4 0 do
       dup i - 0 < 
       bitsbuff @ 18 rshift swap storecode
       bitsbuff @ 6 lshift bitsbuff !
-   loop drop
-;
+   loop drop ;
 
 : (b64encode) ( addr len dest - )
     to b64pt
     0 b64pt !
+    dup b64len ! 
     0 do
-	i 3bytesin  4chars,
+	i 3bytesin  4chars!
     3 +loop drop ;
     
 
@@ -90,4 +90,4 @@ variable bitsbuff
     (b64encode) ;
 
 : test-b64encode
-    s" hello world"  pad b64encode-dict  pad  count type cr ;
+    s" hello world!!"  pad b64encode-dict  pad  count type cr ;
