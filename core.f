@@ -107,15 +107,14 @@
 : 2dup ( x y - x y x y)  over over ;
 : 2drop ( x y - ) drop drop ;
 : nip ( x y - y) over xor xor ;
-
+: 2swap ( a b c d - c d a b) rot >r rot r> ;
 : r@ ( - u) 1 rpick ; \ It's 1 cause 0 is the return for this word call...
 
 \ Comparisons
 \
-: > swap < ;
-
-: <= 1+ < ;
-: >= swap <= ;
+\ : > swap < ;
+\ : <= 1+ < ;
+\ : >= swap <= ;
 
 \ Misc useful stuff
 \
@@ -182,9 +181,13 @@
     [compile] ; 
 ;
 
-: ddict@ ( a - u)
+: dict-d@ ( a - u)
   dup dict@ swap 1+ dict@ swap 16 lshift or ;
   
+: dict-d! ( d a - )
+    over 16 rshift over dict!
+    swap $0000ffff and swap 1+ dict! ;
+
 \ Conditionals
 
 : if ( -- ifaddr)
@@ -260,9 +263,7 @@ variable _leaveloop
     [compile] >r			\ ( -- idx) store new
     [compile] lit  1 ,
     [compile] rpick			\ ( -- idx limit)
-    [compile] swap			\ ( -- limit idx)
-    [compile] -
-    [compile] 0=			\ if idx == limit, we are done.
+    [compile] >=			\ if idx >= limit, we are done.
     [compile] lit
     ,					\ store doaddr
     [compile] 0jmp?

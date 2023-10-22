@@ -228,7 +228,9 @@ int interpret_from(FILE *fp) {
     stat = tbforth_interpret(line);
     switch(stat) {
     case E_NOT_A_WORD:
-      fprintf(stdout," line: %d: ", lineno);
+    case E_NOT_A_NUM:
+      if (fp != stdout)
+	fprintf(stdout," line: %d: ", lineno);
       txs0("Huh? >>> ");
       txs(&tbforth_iram->tib[tbforth_iram->tibwordidx],tbforth_iram->tibwordlen);
       txs0(" <<< ");

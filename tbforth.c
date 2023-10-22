@@ -85,11 +85,12 @@ enum {
   HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
-  NEXT, CNEXT,  EXEC, LESS_THAN,
+  NEXT, CNEXT,  EXEC, LESS_THAN, GREATER_THAN, GREATER_THAN_EQ,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
   COMMA_STRING,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
   BYTE_COPY, BYTE_CMP,
+  DICT_BYTE_COPY, DICT_BYTE_CMP,
   POSTPONE, _CREATE, PARSE_NUM,
   INTERP, NUM_TO_STR, UNUM_TO_STR,
   LAST_PRIMITIVE
@@ -305,6 +306,8 @@ void tbforth_load_prims(void) {
   store_prim("0<=", LT_EQ_ZERO);
   store_prim("=", EQ);
   store_prim("<", LESS_THAN);
+  store_prim(">", GREATER_THAN);
+  store_prim(">=", GREATER_THAN_EQ);
   store_prim("dlit", DLIT);
   store_prim(">r", RPUSH);
   store_prim("r>", RPOP);
@@ -328,6 +331,8 @@ void tbforth_load_prims(void) {
   store_prim("+c@", CHAR_FETCH);
   store_prim("bcopy", BYTE_COPY);
   store_prim("bstr=", BYTE_CMP);
+  store_prim("dict-bcopy", DICT_BYTE_COPY);
+  store_prim("dict-bstr=", DICT_BYTE_CMP);
   store_prim("+dict-c@", DCHAR_FETCH);
   store_prim(">string", NUM_TO_STR);
   store_prim(">num", PARSE_NUM);
@@ -360,7 +365,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     if (wd_idx == 0) {
       tbforth_abort_request(ABORT_ILLEGAL);
       tbforth_abort();		/* bad instruction */
-      return E_NOT_A_WORD;
+      return E_ABORT;
     }
     cmd = tbforth_dict[wd_idx++];
 
@@ -368,7 +373,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case 0:
       tbforth_abort_request(ABORT_ILLEGAL);
       tbforth_abort();		/* bad instruction */
-      return E_NOT_A_WORD;
+      return E_ABORT;
     case ABORT:
       tbforth_abort_request(ABORT_WORD);
       break;
@@ -501,6 +506,14 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = dpop();
       dtop() = -(dtop() < r1);
       break;
+    case GREATER_THAN:
+      r1 = dpop();
+      dtop() = -(dtop() > r1);
+      break;
+    case GREATER_THAN_EQ:
+      r1 = dpop();
+      dtop() = -(dtop() >= r1);
+      break;
     case EQ:
       r1 = dpop(); 
       dtop() = -(r1 == dtop());
@@ -551,6 +564,8 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case BYTE_COPY:
     case BYTE_CMP:
+    case DICT_BYTE_COPY:
+    case DICT_BYTE_CMP:
       {
 	RAMC from, dest, fidx, didx, cnt;
 	cnt = dpop();
@@ -558,10 +573,11 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	dest = dpop();
 	fidx = dpop();
 	from  = dpop();
-	str1 = (char*)&tbforth_ram[from] + fidx;
+	str1 = (cmd == DICT_BYTE_COPY || cmd == DICT_BYTE_CMP) ?
+	  (char*)&tbforth_dict[from] + fidx : (char*)&tbforth_ram[from] + fidx;
 	str2 = (char*)&tbforth_ram[dest] + didx;
-	if (cmd == BYTE_CMP)
-	  dpush(memcmp (str2, str1, cnt) == 0);
+	if (cmd == BYTE_CMP || cmd == DICT_BYTE_CMP)
+	  dpush(-(memcmp (str2, str1, cnt) == 0));
 	else
 	  memcpy (str2, str1, cnt);
       }
@@ -662,7 +678,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r2 = parse_num(str1,tbforth_uram->base);
       if (!tbforth_aborting()) 
 	dpush(r2);
-      else return E_NOT_A_WORD;
+      else return E_NOT_A_NUM;
       break;
     case FIND:
     case FIND_ADDR:
@@ -769,7 +785,7 @@ tbforth_stat interpret_tib() {
 	stat = exec(wd_idx,primitive,tbforth_uram->ridx-1);
 	if (stat != U_OK) {
 	  tbforth_abort();
-	  tbforth_abort_clr();
+	  //	  tbforth_abort_clr();
 	  return stat;
 	}
       }

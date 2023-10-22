@@ -60,8 +60,9 @@
 typedef uint32_t RAMC;
 
 
-typedef enum { U_OK=0, COMPILING, E_NOT_A_WORD, E_STACK_UNDERFLOW, E_RSTACK_OVERFLOW,
-	       E_DSTACK_OVERFLOW, E_ABORT, E_EXIT } tbforth_stat;
+typedef enum { U_OK=0, COMPILING, E_NOT_A_WORD, E_NOT_A_NUM,
+  E_STACK_UNDERFLOW, E_RSTACK_OVERFLOW,
+  E_DSTACK_OVERFLOW, E_ABORT, E_EXIT } tbforth_stat;
 
 /*
  Abort reasons.
@@ -92,9 +93,6 @@ extern char* tbforth_next_word (void);
  The following structures are overlays on pre-allocated buffers.
 */
 
-/*
-  iram. 
-*/
 struct tbforth_iram {
   RAMC state;		/* 0=interpreting .. */
   RAMC total_ram;		/* Total ram available */
@@ -115,7 +113,6 @@ struct tbforth_uram {
   RAMC rsize;			/* size of return stack */
   RAMC ds[];		/* data & return stack */
 };
-
 
 struct dict {
   CELL version;			/* dictionary version number */

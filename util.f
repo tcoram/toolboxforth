@@ -134,12 +134,13 @@ variable _endof
     [char] < emit sidx 1+ . [char] > emit 32 emit
     sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . loop ;
 
-\ Interactive debugging help
+
+\ Step debugger... print out message, stack and wait for a key to continue.
+\   a 'q' exits the current definition
 \
-: debug-pre cr ." debug: " ;
-: debug  cr ."     stack -> [" .s ." ]" cr key drop ;
-: debug" [compile] debug-pre
-    postpone ," [compile] dict-count [compile] dict-type  [compile] debug ; immediate
+: (.s-step) cr dict-type  [char] : emit 32 emit .s  key [char] q = if r> exit then ;
+: .s-step" postpone s" [compile] (.s-step) ; immediate
+
 
 \ if not true, print out a string and abort to top level
 \
