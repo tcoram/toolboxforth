@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title></title>
+	<meta name="author" content="">
+	<meta name="GENERATOR" content = "Almost Free Text v5.098; Copyright 1996-2010 Todd Coram.">
+<style type="text/css">
+  <!--
+	.section5 { padding-left: 50pt; }
+	.section6 { padding-left: 75pt; }
+	.section7 { padding-left: 100pt; }
+html { background: #eee; color: #000; }
+
+body { background: #eee; color: #000; margin: 0; padding: 0;}
+
+div.body {
+	background: #fff; color: #000;
+	margin: 0 1em 0 1em; padding: 1em;
+	font-family: serif;
+	font-size: 1em; line-height: 1.2em;
+	border-width: 0 1px 0 1px;
+	border-style: solid;
+	border-color: #aaa;
+}
+
+div.block {
+	background: #F8F8FF; color: #000;
+	margin: 1em; padding: 0 1em 0 1em;
+	border-width: 1px;
+	border-style: solid;
+	border-color: #909090;
+}
+
+table {
+	background: #F8F8F8; color: #000;
+	margin: 1em;
+	border-width: 0 0 0 1px;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+td {
+	border-width: 0 1px 1px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+th {
+	background: #F8F8FF;
+	border-width: 1px 1px 2px 0;
+	border-style: solid;
+	border-color: #C0C0C0;
+}
+
+
+/* body text, headings, and rules */
+
+p { margin: 0; text-indent: 0em; margin: 0 0 0.5em 0 }
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+/*
+h1 { font-size: 1.69em; margin: 1.4em 0 0.4em 0; }
+h2 { font-size: 1.44em; margin: 1.4em 0 0.4em 0; }
+h3 { font-size: 1.21em; margin: 1.4em 0 0.4em 0; }
+h4 { font-size: 1.00em; margin: 1.4em 0 0.4em 0; }
+h5 { font-size: 0.81em; margin: 1.4em 0 0.4em 0; }
+h6 { font-size: 0.64em; margin: 1.4em 0 0.4em 0; }
+*/
+
+hr {
+	color: transparent; background: transparent;
+	height: 0px; margin: 0.6em 0;
+	border-width: 1px ;
+	border-style: solid;
+	border-color: #999;
+}
+
+/* bulleted lists and definition lists */
+
+ul { margin: 0 1em 0.6em 2em; padding: 0; }
+li { margin: 0.4em 0 0 0; }
+
+dl { margin: 0.6em 1em 0.6em 2em; }
+dt { color: #206020; }
+
+tt { color: #602020; }
+
+/* links */
+
+a.link {
+	color: #33c; background: transparent;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #000; background: transparent;
+}
+
+body > a {
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-size: 0.81em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+	color: #206020; background: transparent;
+	font-family: Optima, Arial, Helvetica, sans-serif;
+	font-weight: normal;
+}
+
+  -->
+</style>
+</head>
+<body>
+<div class="body">
+
+<!-- Start SectLevel1 -->
+<h2><a name="Toolbox Forth Words">Toolbox Forth Words</a></h2>
+<p class="Body">
+init  .s-step&quot;  (.s-step)  DEBUG  time-it  forget-to-mark  mark  
+to  value  is  defer  is-immediate?  ?dup  dbytes&gt;pad  words  _cc  memory  
+assert&quot;  .s  h.  u.  .  .&quot;  dict-type  type  c&quot;  s&quot;  [char]  char  space  
+cr  max  min  abs  binary  decimal  hex  dict-count  count  endcase  endof  
+of  case  _endof  exit-if0+  exit-if0-  word  A  pad  cbyte-allot  
+byte-allot  allot  dup?  until  repeat  while  again  begin  exit  unloop  
+loop  +loop  leave  j  i  do  _leaveloop  next  for  then  else  if  
+dict-d!  dict-d@  dconstant  constant  variable  create  [compile]  ['&amp;]  
+'&amp;  [']  '  /mod  decr  incr  +!  r@  2swap  nip  2drop  2dup  2/  2*  2+  
+not  negate  nop  depth  tibbuf  tib  tibwordlen  tibwordidx  tibidx  R  T  
+rsa  dsa  rslen  dslen  ridx  sidx  base  uram-size  compiling-word-addr  
+ramsize  compiling?  reset-state  state?  uram-top@  lwa  (here)  maxdict  
+wordsize  dversion  DCELL  RAMC  {  (  \  mac  gcm-decrypt  gcm-encrypt  
+sleep  delay  wdt-rst  /wdt  uart!  uart@  uart?  uart-end  uart-begin  
+}spi  spi@  spi!  spi{  spi-config  gpio-write  gpio-read  gpio-mode  
+close-file  open-file  include  save-image  key  emit  ms  secs  cf  
+interpret  u&gt;string  &gt;num  &gt;string  +dict-c@  dict-bstr=  dict-bcopy  
+bstr=  bcopy  +c@  c!+  +c!  next-char  next-word  postpone  ,&quot;  
+(find-head)  (find-code)  (allot1)  (create)  :  ;  dict!  @  !  dict@  r&gt;  
+&gt;r  dlit  &gt;=  &gt;  &lt;  =  0&lt;=  0&gt;  0=  mod  */  /  *  rshift  lshift  invert  
+xor  or  and  -  +  1-  1+  d,  ,  exec  0jmp?  jmp  over  swap  dup  rot  
+drop  0skip?  rpick  abort  <a class="link" href="#immediate">immediate</a>  <a class="link" href="#iram">iram</a>  <a class="link" href="#uram">uram</a>  <a class="link" href="#here">here</a>  <a class="link" href="#cold">cold</a>  <a class="link" href="#lit">lit</a>
+</p>
+<dl>
+<dt><strong><a name="lit">lit</a> ( - )</strong></dt><dd> - A literal follows. This is a <em>compiler</em> word.</dd>
+<dt><strong><a name="cold">cold</a> ( - )</strong></dt><dd> -Reset iram variables (including clearing the stack) and restart the interpreter.</dd>
+<dt><strong><a name="here">here</a> ( - a)</strong></dt><dd> - Address of the top  of the dictionary.</dd>
+<dt><strong><a name="uram">uram</a> ( - a)</strong></dt><dd> - Address of the top of user ram.</dd>
+<dt><strong><a name="iram">iram</a> ( - a)</strong></dt><dd> - Address of the top of internal (compiler) ram.</dd>
+<dt><strong><a name="immediate">immediate</a> ( - )</strong></dt><dd> - Marks last defined word as <em>immediate</em> (for compiling).    </dd>
+</dl>
+<!--End Section 1-->
+<!-- End SectLevel1 -->
+<hr>
+<br>
+<p align="right"> <small>This document was generated using <a class="link" href="http://www.maplefish.com/todd/aft.html">AFT v5.098</a></small> </p>
+</body>
+</html>
+
