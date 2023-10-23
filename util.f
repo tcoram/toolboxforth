@@ -251,11 +251,21 @@ variable _cc			\ keep track of # of characters on a line
 : time-it ( addr - )
   ms >r exec ms r> - . ."  ms elapsed" cr ;
 
-\ Step debugger... print out message, stack and wait for a key to continue.
-\   a 'q' exits the current definition
+\ Step debugger...
+\ If DEBUG is 0 -> do nothing
+\ If DEBUG is 1 -> print stuff
+\ If DEBUG is 2 -> print stuff and stack
+\ If DEBUG is 3 -> print stuff and stack and wait for  a key pres
 \
 0 value DEBUG
-: (.s-step) cr dict-type  [char] : emit 32 emit .s  key [char] q = if r> exit then ;
-: .s-step" postpone s" [compile] (.s-step) ; immediate
+: ok(.s-step) dict-type  [char] : emit 32 emit .s  key [char] q = if r> exit then ;
+
+: (.debug) ( addr count - )
+    DEBUG 0 = if drop drop exit then
+    DEBUG 0 > if cr dict-type then
+    DEBUG 1 > if [char] : emit 32 emit .s then
+    DEBUG 2 > if key [char] q = if r> exit then then ;
+    
+: debug" postpone s" [compile] (.debug) ; immediate
 
 : init ;
