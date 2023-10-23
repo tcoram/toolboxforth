@@ -258,7 +258,6 @@ variable _cc			\ keep track of # of characters on a line
 \ If DEBUG is 3 -> print stuff and stack and wait for  a key pres
 \
 0 value DEBUG
-: ok(.s-step) dict-type  [char] : emit 32 emit .s  key [char] q = if r> exit then ;
 
 : (.debug) ( addr count - )
     DEBUG 0 = if drop drop exit then
