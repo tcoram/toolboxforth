@@ -59,6 +59,7 @@
 #endif
 
 
+
 tbforth_stat interpret_tib();
 
 CELL *tbforth_dict;			/* treat dict struct like array */
@@ -77,24 +78,6 @@ struct tbforth_uram *tbforth_uram;
 
 
 RAMC tbforth_ram[TOTAL_URAM_CELLS];
-
-// LIT must be 1!
-//
-enum { 
-  LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
-  HERE, RAM_BASE_ADDR, INCR, DECR,
-  ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
-  OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
-  NEXT, CNEXT,  EXEC, LESS_THAN, GREATER_THAN, GREATER_THAN_EQ,
-  INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
-  COMMA_STRING,
-  VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
-  BYTE_COPY, BYTE_CMP,
-  DICT_BYTE_COPY, DICT_BYTE_CMP,
-  POSTPONE, _CREATE, PARSE_NUM,
-  INTERP, NUM_TO_STR, UNUM_TO_STR,
-  LAST_PRIMITIVE
-};
 
 void tbforth_cdef (char* name, int val) {
   char n[80];
@@ -222,22 +205,6 @@ char* tbforth_next_word (void) {
   return &(tbforth_iram->tib[tbforth_iram->tibwordidx]);
 }
 
-void tbforth_abort(void) {
-  if (tbforth_iram->state == COMPILING) {
-    dict_append(ABORT);
-  }
-  tbforth_iram->state = 0;
-  tbforth_abort_clr();
-  tbforth_uram->ridx = tbforth_uram->rsize + tbforth_uram->dsize;
-  tbforth_uram->didx = -1;
-}
-
-void store_prim(char* str, CELL val) {
-  make_word(str,strlen(str));
-  dict_append(val);
-  dict_append(EXIT);
-  dict_write((dict->last_word_idx+1), tbforth_dict[dict->last_word_idx+1]|PRIM_BIT);
-}
 
 typedef tbforth_stat (*wfunct_t)(void);
 
@@ -261,6 +228,33 @@ void tbforth_init(void) {
   tbforth_uram->base = 10;
 }
 
+
+// Opcodes
+// LIT must be 1!
+//
+enum { 
+  LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
+  HERE, RAM_BASE_ADDR, INCR, DECR,
+  ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
+  OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
+  NEXT, CNEXT,  EXEC, LESS_THAN, GREATER_THAN, GREATER_THAN_EQ,
+  INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
+  COMMA_STRING,
+  VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
+  BYTE_COPY, BYTE_CMP,
+  DICT_BYTE_COPY, DICT_BYTE_CMP,
+  POSTPONE, _CREATE, PARSE_NUM,
+  INTERP, NUM_TO_STR, UNUM_TO_STR,
+  LAST_PRIMITIVE
+};
+
+void store_prim(char* str, CELL val) {
+  make_word(str,strlen(str));
+  dict_append(val);
+  //  dict_append(EXIT); // not needed since we optimize primitives by inlining them
+  dict_write((dict->last_word_idx+1), tbforth_dict[dict->last_word_idx+1]|PRIM_BIT);
+}
+
 /* Bootstrap code */
 void tbforth_load_prims(void) {
   dict->here = DICT_HEADER_WORDS+1;
@@ -268,15 +262,11 @@ void tbforth_load_prims(void) {
     Store our primitives into the dictionary as "callable" words (for interpret).
     (During compilation references to these word definitions are optimized away).
   */
+
+  // Primary opcodes
+  //
   store_prim("lit", LIT);
-  store_prim("cold", COLD);
-  store_prim("here", HERE);
-  store_prim("uram", URAM_BASE_ADDR);
-  store_prim("iram", RAM_BASE_ADDR);
-  store_prim("immediate", IMMEDIATE);
-  store_prim("abort", ABORT);
-  store_prim("rpick", RPICK);
-  store_prim("0skip?", SKIP_IF_ZERO);
+  store_prim("dlit", DLIT);
   store_prim("drop", DROP);
   store_prim("rot", ROT);
   store_prim("dup", DUP);
@@ -284,7 +274,7 @@ void tbforth_load_prims(void) {
   store_prim("over", OVER);
   store_prim("jmp", JMP);
   store_prim("0jmp?", JMP_IF_ZERO);
-  store_prim("exec", EXEC);
+  store_prim("0skip?", SKIP_IF_ZERO);
   store_prim(",", COMMA);
   store_prim("d,", DCOMMA);
   store_prim("1+", INCR);
@@ -308,37 +298,46 @@ void tbforth_load_prims(void) {
   store_prim("<", LESS_THAN);
   store_prim(">", GREATER_THAN);
   store_prim(">=", GREATER_THAN_EQ);
-  store_prim("dlit", DLIT);
+  store_prim("rpick", RPICK);
   store_prim(">r", RPUSH);
   store_prim("r>", RPOP);
-  store_prim("dict@", DICT_FETCH);
   store_prim("!", STORE);
   store_prim("@", FETCH);
   store_prim("dict!", DICT_STORE);
-  store_prim(";", EXIT);  make_immediate();
-  store_prim(":", DEF); 
-  store_prim("(create)", _CREATE); 
-  store_prim("(allot1)", VAR_ALLOT);
-  store_prim("(find-code)", FIND);
-  store_prim("(find-head)", FIND_ADDR);
+  store_prim("dict@", DICT_FETCH);
+  store_prim("+dict-c@", DCHAR_FETCH);
   store_prim(",\"", COMMA_STRING); make_immediate();
-  store_prim("postpone", POSTPONE); make_immediate();
-
-  store_prim("next-word", NEXT);
-  store_prim("next-char", CNEXT);
   store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
   store_prim("+c@", CHAR_FETCH);
+  store_prim("(create)", _CREATE); 
+  store_prim("next-word", NEXT);
+  store_prim("next-char", CNEXT);
+  store_prim(":", DEF); 
+  store_prim(";", EXIT);  make_immediate();
+  store_prim("immediate", IMMEDIATE);
+  store_prim("postpone", POSTPONE); make_immediate();
+
+  // extended opcodes
+  //
+  store_prim("(allot1)", VAR_ALLOT);
+  store_prim("(find-code)", FIND);
+  store_prim("(find-head)", FIND_ADDR);
+  store_prim("cold", COLD);
+  store_prim("abort", ABORT);
   store_prim("bcopy", BYTE_COPY);
   store_prim("bstr=", BYTE_CMP);
   store_prim("dict-bcopy", DICT_BYTE_COPY);
   store_prim("dict-bstr=", DICT_BYTE_CMP);
-  store_prim("+dict-c@", DCHAR_FETCH);
   store_prim(">string", NUM_TO_STR);
   store_prim(">num", PARSE_NUM);
   store_prim("u>string", UNUM_TO_STR);
+  store_prim("exec", EXEC);
+  store_prim("uram", URAM_BASE_ADDR);
+  store_prim("iram", RAM_BASE_ADDR);
   store_prim("interpret", INTERP);
   store_prim("cf", CALLC);
+  store_prim("here", HERE);
 
   // Allocate the scratch pad
   //
@@ -352,6 +351,16 @@ char* tbforth_count_str(CELL addr,CELL* new_addr) {
   str =(char*)&tbforth_ram[addr+1];
   *new_addr = tbforth_ram[addr];
   return str;
+}
+
+void tbforth_abort(void) {
+  if (tbforth_iram->state == COMPILING) {
+    dict_append(ABORT);
+  }
+  tbforth_iram->state = 0;
+  tbforth_abort_clr();
+  tbforth_uram->ridx = tbforth_uram->rsize + tbforth_uram->dsize;
+  tbforth_uram->didx = -1;
 }
 
 tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
