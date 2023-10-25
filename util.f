@@ -259,12 +259,25 @@ variable _cc			\ keep track of # of characters on a line
 \
 0 value DEBUG
 
-: (.debug) ( addr count - )
+: (.debug") ( addr count - )
     DEBUG 0 = if drop drop exit then
-    DEBUG 0 > if cr dict-type then
+   ." DBG " secs . ." : "
+    DEBUG 0 > if dict-type then
     DEBUG 1 > if [char] : emit 32 emit .s then
-    DEBUG 2 > if key [char] q = if r> exit then then ;
+    DEBUG 2 > if key [char] q = if r> exit then then cr ;
     
-: debug" postpone s" [compile] (.debug) ; immediate
+: debug" ( <string> )
+    postpone s" [compile] (.debug") ; immediate
+
+: (.debug-exec) ( addr - )
+    DEBUG 0 = if drop exit then
+   ." DBG " secs . ." : "
+    DEBUG 0 > if exec then
+    DEBUG 1 > if [char] : emit 32 emit .s then
+    DEBUG 2 > if key [char] q = if r> exit then then cr ;
+
+: debug-exec ( <word> )
+    postpone ['] [compile] (.debug-exec) ; immediate
+
 
 : init ;

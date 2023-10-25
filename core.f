@@ -53,9 +53,10 @@
 \
 : state? ( - f) 0 iram + @  ;
 : reset-state ( - ) 0 0 iram + !  ;
+: is-compiling ( - ) 1 0 iram + ! ;
 : compiling? ( - f) state? 1 = ;
 : ramsize ( - f) 1 iram + @  ;
-: compiling-word-addr ( -- a) 2 iram + @ ;
+: compiling-word! ( a --) 2 iram + ! ;
 
 \ Task based RAM (uram)
 \
@@ -108,7 +109,6 @@
 : 2drop ( x y - ) drop drop ;
 : nip ( x y - y) over xor xor ;
 : 2swap ( a b c d - c d a b) rot >r rot r> ;
-: r@ ( - u) 1 rpick ; \ It's 1 cause 0 is the return for this word call...
 
 \ Comparisons
 \
@@ -146,6 +146,7 @@
     ['] ,  ,				\ store a comma (for later get word)
 ; immediate
 
+: r@ ( - u) [compile] lit 0 ,  [compile] rpick ; immediate
 
 \ A create that simply returns address of here after created word.
 \
@@ -221,12 +222,12 @@
   [compile] >r
   here ; immediate
 
+
 : next ( faddr -- )
   [compile] r>
   [compile] 1-
+  [compile] dup
   [compile] >r
-  [compile] lit 0 ,
-  [compile] rpick   
   [compile] 0=
   [compile] lit
   ,					\ store for's here
