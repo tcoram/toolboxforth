@@ -39,8 +39,8 @@
 #define IRAM_BYTES (sizeof(struct tbforth_iram))
 #define URAM_HDR_BYTES (sizeof(struct tbforth_uram))
 #define URAM_START (IRAM_BYTES+URAM_HDR_BYTES)
-#define VAR_ALLOTN(n) (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(n))
-#define VAR_ALLOT_1() (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(1))
+#define VAR_ALLOTN(n) (IRAM_BYTES/4+URAM_HDR_BYTES/4+dict_incr_varidx(n))
+#define VAR_ALLOT_1() (IRAM_BYTES/4+URAM_HDR_BYTES/4+dict_incr_varidx(1))
 
 #define PAD_ADDR (IRAM_BYTES+URAM_HDR_BYTES)
 #define PAD_STR (char*)&tbforth_ram[PAD_ADDR+1]
@@ -398,8 +398,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       // dpush((char*)tbforth_uram - (char*)tbforth_iram + sizeof (struct tbforth_iram));
       break;
     case STORE_URAM_BASE_ADDR:
-      tbforth_uram = (struct tbforth_uram*) (tbforth_ram +
-					     sizeof (struct tbforth_iram) + dpop());
+      tbforth_uram = &tbforth_uram[dpop()];
       break;
     case SKIP_IF_ZERO:
       r1 = dpop(); r2 = dpop();
