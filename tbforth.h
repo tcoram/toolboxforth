@@ -31,7 +31,7 @@
 /*
  Input buffer... longest line you can give tbforth to interpret.
 */
-#define TIB_SIZE		(160)  /* bytes */
+#define TIB_SIZE		(40*4)  /* 160 bytes.. RAMC CELLS */
 
 #define FIXED_PT_DIVISOR	((double)(1000000.0))
 #define FIXED_PT_PLACES		6
@@ -157,7 +157,6 @@ extern struct tbforth_uram *tbforth_uram;
 #define dtop() tbforth_uram->ds[tbforth_uram->didx]
 #define dtop2() tbforth_uram->ds[(tbforth_uram->didx)-1]
 #define dtop3() tbforth_uram->ds[(tbforth_uram->didx)-2]
-#define rtop() tbforth_iram->rs[tbforth_uram->ridx]
 
 extern void tbforth_cdef (char* name, int val);
 

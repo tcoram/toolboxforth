@@ -36,8 +36,8 @@
 #define DICT_HEADER_WORDS	((sizeof(struct dict)/(sizeof (CELL))) - MAX_DICT_CELLS)
 #define DICT_INFO_SIZE_BYTES	(sizeof(CELL)*DICT_HEADER_WORDS)
 
-#define IRAM_BYTES (RAMC)(sizeof(struct tbforth_iram))/sizeof(RAMC)
-#define URAM_HDR_BYTES (RAMC)(sizeof(struct tbforth_uram))/sizeof(RAMC)
+#define IRAM_BYTES (sizeof(struct tbforth_iram))
+#define URAM_HDR_BYTES (sizeof(struct tbforth_uram))
 #define URAM_START (IRAM_BYTES+URAM_HDR_BYTES)
 #define VAR_ALLOTN(n) (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(n))
 #define VAR_ALLOT_1() (IRAM_BYTES+URAM_HDR_BYTES+dict_incr_varidx(1))
@@ -215,7 +215,7 @@ void tbforth_init(void) {
   tbforth_iram->state = 0;
   tbforth_iram->total_ram = TOTAL_URAM_CELLS;
   tbforth_uram = (struct tbforth_uram*)
-    (tbforth_ram + sizeof(struct tbforth_iram));
+    ((char*)tbforth_ram + sizeof(struct tbforth_iram));
   tbforth_uram->len = TOTAL_URAM_CELLS - sizeof(struct tbforth_iram);
   tbforth_uram->dsize = DS_CELLS;
   tbforth_uram->rsize = RS_CELLS;
@@ -233,7 +233,7 @@ void tbforth_init(void) {
 // LIT must be 1!
 //
 enum { 
-  LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  RPICK,
+  LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  STORE_URAM_BASE_ADDR, RPICK,
   HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
@@ -334,6 +334,7 @@ void tbforth_load_prims(void) {
   store_prim("u>string", UNUM_TO_STR);
   store_prim("exec", EXEC);
   store_prim("uram", URAM_BASE_ADDR);
+  store_prim("uram!", STORE_URAM_BASE_ADDR);
   store_prim("iram", RAM_BASE_ADDR);
   store_prim("interpret", INTERP);
   store_prim("cf", CALLC);
@@ -393,7 +394,12 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush (0);
       break;
     case URAM_BASE_ADDR:
-      dpush(sizeof(struct tbforth_iram));
+      dpush(sizeof(struct tbforth_iram)/4);
+      // dpush((char*)tbforth_uram - (char*)tbforth_iram + sizeof (struct tbforth_iram));
+      break;
+    case STORE_URAM_BASE_ADDR:
+      tbforth_uram = (struct tbforth_uram*) (tbforth_ram +
+					     sizeof (struct tbforth_iram) + dpop());
       break;
     case SKIP_IF_ZERO:
       r1 = dpop(); r2 = dpop();
