@@ -394,11 +394,10 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dpush (0);
       break;
     case URAM_BASE_ADDR:
-      dpush(sizeof(struct tbforth_iram)/4);
-      // dpush((char*)tbforth_uram - (char*)tbforth_iram + sizeof (struct tbforth_iram));
+      dpush(((char*)tbforth_uram - (char*)tbforth_ram)/4);
       break;
     case STORE_URAM_BASE_ADDR:
-      tbforth_uram = &tbforth_uram[dpop()];
+      tbforth_uram = (struct tbforth_uram*) &tbforth_ram[dpop()];
       break;
     case SKIP_IF_ZERO:
       r1 = dpop(); r2 = dpop();
