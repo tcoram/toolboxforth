@@ -163,12 +163,13 @@ extern void tbforth_cdef (char* name, int val);
 // Some useful OS extensions...you can handle in c_handle() or not... its up to you
 //
 enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
-  OS_READB, OS_WRITEB, OS_MS, OS_SECS};
+  OS_READB, OS_WRITEB, OS_MS, OS_SECS, OS_POLL};
 
 #define OS_WORDS() \
   tbforth_cdef("secs", OS_SECS); \
   tbforth_cdef("ms", OS_MS); \
   tbforth_cdef("emit", OS_EMIT); \
+  tbforth_cdef("poll", OS_POLL); \
   tbforth_cdef("key", OS_KEY); \
   tbforth_cdef("save-image", OS_SAVE_IMAGE); \
   tbforth_cdef("include", OS_INCLUDE); \

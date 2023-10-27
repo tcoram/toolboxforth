@@ -7,7 +7,7 @@
 #include <sys/stat.h>
 #include <string.h>
 #include <sys/time.h>
-
+#include <poll.h>
 #include "tbforth.h"
 
 
@@ -106,6 +106,28 @@ tbforth_stat c_handle(void) {
   static char buf[80*2];
 
   switch(r1) {
+  case OS_POLL:
+    {
+      int ret_poll;
+      int ms = dpop();
+      int event = dpop();
+      int fdcnt = dpop();
+      
+      struct pollfd input[fdcnt];
+      
+      for (int i=0; i < fdcnt; i++) {
+	input[i].fd = dpop();
+	input[i].events = event;
+      }
+      ret_poll = poll(input, fdcnt, ms);
+      dpush(ret_poll);
+      if (ret_poll > 0) {
+	for (int i=0; i < fdcnt; i++) {
+	  dpush(input[i].revents);
+	}
+      }
+    }
+    break;
   case OS_SECS:
     {
       time_t now;
