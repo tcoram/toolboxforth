@@ -59,7 +59,6 @@
 #endif
 
 
-
 tbforth_stat interpret_tib();
 
 CELL *tbforth_dict;			/* treat dict struct like array */
@@ -67,6 +66,47 @@ abort_t _tbforth_abort_request;	/* for emergency aborts */
 
 struct tbforth_iram *tbforth_iram;
 struct tbforth_uram *tbforth_uram;
+
+#ifdef GUARD_RAILS
+inline void DICT_WRITE(CELL a, RAMC v) {
+  if(a >= 0 && a < MAX_DICT_CELLS) {
+    dict_write(a,v);
+  } else {
+    tbforth_abort_request(ABORT_ILLEGAL);
+    tbforth_abort();
+  }
+}
+inline void RAM_WRITE(CELL a, RAMC v) {
+  if(a >= 0 && a < TOTAL_RAM_CELLS) {
+    tbforth_ram[a]=v;
+  }else {
+    tbforth_abort_request(ABORT_ILLEGAL);
+    tbforth_abort();
+  }
+}
+inline void DICT_APPEND(CELL c) {
+  if (dict->here < MAX_DICT_CELLS) {
+    dict_append(c);
+  } else {
+    tbforth_abort_request(ABORT_ILLEGAL);
+    tbforth_abort();
+  }
+}    
+
+inline void DICT_APPEND_STRING(char*s, RAMC l) {
+  if (dict->here < MAX_DICT_CELLS) {
+    dict_append_string(s,l);
+  } else {
+    tbforth_abort_request(ABORT_ILLEGAL);
+    tbforth_abort();
+  }
+}    
+#else
+#define DICT_WRITE(a,v) dict_write(a,v)
+#define RAM_WRITE(a,v) tbforth_ram[a]=v
+#define DICT_APPEND(c) dict_append(c)
+#define DICT_APPEND_STRING(s,l) dict_append_string(s,l)
+#endif
 
 
 /*
@@ -77,7 +117,7 @@ struct tbforth_uram *tbforth_uram;
 #define PRIM_BIT     (1<<6)
 
 
-RAMC tbforth_ram[TOTAL_URAM_CELLS];
+RAMC tbforth_ram[TOTAL_RAM_CELLS];
 
 void tbforth_cdef (char* name, int val) {
   char n[80];
@@ -173,15 +213,15 @@ CELL find_word(char* s, uint8_t len, RAMC* addr, bool *immediate, char *prim);
 void make_word(char *str, uint8_t str_len) {
   CELL my_head = dict_here();
 
-  dict_append(dict->last_word_idx);
-  dict_append(str_len);
-  dict_append_string(str, str_len);
+  DICT_APPEND(dict->last_word_idx);
+  DICT_APPEND(str_len);
+  DICT_APPEND_STRING(str, str_len);
   dict_set_last_word(my_head);
 
 }
 
 void make_immediate(void) {
-  dict_write((dict->last_word_idx+1), tbforth_dict[dict->last_word_idx+1]|IMMEDIATE_BIT);
+  DICT_WRITE((dict->last_word_idx+1), tbforth_dict[dict->last_word_idx+1]|IMMEDIATE_BIT);
 }
 
 char next_char(void) {
@@ -213,10 +253,10 @@ void tbforth_init(void) {
   tbforth_dict = (CELL*)dict;
   tbforth_iram = (struct tbforth_iram*) tbforth_ram;
   tbforth_iram->state = 0;
-  tbforth_iram->total_ram = TOTAL_URAM_CELLS;
+  tbforth_iram->total_ram = TOTAL_RAM_CELLS;
   tbforth_uram = (struct tbforth_uram*)
     ((char*)tbforth_ram + sizeof(struct tbforth_iram));
-  tbforth_uram->len = TOTAL_URAM_CELLS - sizeof(struct tbforth_iram);
+  tbforth_uram->len = TOTAL_RAM_CELLS - sizeof(struct tbforth_iram);
   tbforth_uram->dsize = DS_CELLS;
   tbforth_uram->rsize = RS_CELLS;
   tbforth_uram->ridx = DS_CELLS + RS_CELLS;
@@ -250,9 +290,9 @@ enum {
 
 void store_prim(char* str, CELL val) {
   make_word(str,strlen(str));
-  dict_append(val);
-  //  dict_append(EXIT); // not needed since we optimize primitives by inlining them
-  dict_write((dict->last_word_idx+1), tbforth_dict[dict->last_word_idx+1]|PRIM_BIT);
+  DICT_APPEND(val);
+  //  DICT_APPEND(EXIT); // not needed since we optimize primitives by inlining them
+  DICT_WRITE((dict->last_word_idx+1), tbforth_dict[dict->last_word_idx+1]|PRIM_BIT);
 }
 
 /* Bootstrap code */
@@ -356,7 +396,7 @@ char* tbforth_count_str(CELL addr,CELL* new_addr) {
 
 void tbforth_abort(void) {
   if (tbforth_iram->state == COMPILING) {
-    dict_append(ABORT);
+    DICT_APPEND(ABORT);
   }
   tbforth_iram->state = 0;
   tbforth_abort_clr();
@@ -544,7 +584,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case DICT_STORE:
       r1 = dpop();
       r2 = dpop();
-      dict_write(r1,r2);
+      DICT_WRITE(r1,r2);
       break;
     case FETCH:
       r1 = dpop();
@@ -627,13 +667,13 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case COMMA_STRING:
       if (tbforth_iram->state == COMPILING) {
-	dict_append(LIT);
-	dict_append(dict_here()+sizeof(RAMC)); /* address of counted string */
+	DICT_APPEND(LIT);
+	DICT_APPEND(dict_here()+sizeof(RAMC)); /* address of counted string */
 
-	dict_append(LIT);
+	DICT_APPEND(LIT);
 	rpush(dict_here());	/* address holding adress  */
 	dict_incr_here(1);	/* place holder for jump address */
-	dict_append(JMP);
+	DICT_APPEND(JMP);
       }
       rpush(dict_here());
       dict_incr_here(1);	/* place holder for count*/
@@ -649,11 +689,11 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	  ++r1;
 	  r2 |= BYTEPACK_SECOND(b);
 	}
-	dict_append(r2);
+	DICT_APPEND(r2);
       } while (b != 0 && b!= '"');
-      dict_write(rpop(),r1);
+      DICT_WRITE(rpop(),r1);
       if (tbforth_iram->state == COMPILING) {
-	dict_write(rpop(),dict_here());	/* jump over string */
+	DICT_WRITE(rpop(),dict_here());	/* jump over string */
       }
       break;
     case CALLC:
@@ -676,12 +716,12 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       }
       break;
     case COMMA:
-      dict_append(dpop());
+      DICT_APPEND(dpop());
       break;
     case DCOMMA:
       r1 = dpop();
-      dict_append((uint32_t)r1>>16);
-      dict_append(r1);
+      DICT_APPEND((uint32_t)r1>>16);
+      DICT_APPEND(r1);
       break;
     case PARSE_NUM:
       r1 = dpop();
@@ -716,9 +756,9 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	return E_NOT_A_WORD;
       }
       if (b) {			/* optimize for primitives... */
-	dict_append(tbforth_dict[r1]);
+	DICT_APPEND(tbforth_dict[r1]);
       } else {
-	dict_append(r1);
+	DICT_APPEND(r1);
       }
       break;
     case UNUM_TO_STR:
@@ -811,12 +851,12 @@ tbforth_stat interpret_tib() {
 	  dict_end_def();
 	  return E_NOT_A_WORD;
 	}
-	dict_append(DLIT);
-	dict_append(((uint32_t)num)>>16);
-	dict_append(((uint16_t)num)&0xffff);
+	DICT_APPEND(DLIT);
+	DICT_APPEND(((uint32_t)num)>>16);
+	DICT_APPEND(((uint16_t)num)&0xffff);
       }	else if (word[0] == ';') { /* exit from a colon def */
 	tbforth_iram->state = 0;
-	dict_append(EXIT);
+	DICT_APPEND(EXIT);
 	dict_end_def();
 	tbforth_iram->compiling_word = 0;
       } else if (immediate) {	/* run immediate word */
@@ -830,7 +870,7 @@ tbforth_stat interpret_tib() {
       } else {			/* just compile word */
 	if (primitive) {
 	  /* OPTIMIZATION: inline primitive */
-	  dict_append(tbforth_dict[wd_idx]);
+	  DICT_APPEND(tbforth_dict[wd_idx]);
 	} else {
 	  /* OPTIMIZATION: skip null definitions */
 	  if (tbforth_dict[wd_idx] != EXIT) {
@@ -841,11 +881,11 @@ tbforth_stat interpret_tib() {
 		 situations. We don't check to see if this is truly a
 		 tail call, but we treat it as such.
 	      */
-	      dict_append(LIT);
-	      dict_append(tbforth_iram->compiling_word);
-	      dict_append(JMP);
+	      DICT_APPEND(LIT);
+	      DICT_APPEND(tbforth_iram->compiling_word);
+	      DICT_APPEND(JMP);
 	    } else {
-	      dict_append(wd_idx);
+	      DICT_APPEND(wd_idx);
 	    }
 	  }
 	}

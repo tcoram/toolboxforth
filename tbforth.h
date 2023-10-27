@@ -10,6 +10,10 @@
 #define TBFORTH_VERSION "3.024"
 #define DICT_VERSION 15
 
+// Some (minimal) memory protection for ! and dict_write()
+//
+#define GUARD_RAILS
+
 /* 
    The Dictionary: Max is 64K words (64KB * 2 bytes). 
    Pick a size suitable for your target.
@@ -21,7 +25,7 @@
 /*
  Total user RAM (each ram cell is 4 bytes): includes stacks and (Scratch) PAD
 */
-#define TOTAL_URAM_CELLS		(2048) /* 8KB */
+#define TOTAL_RAM_CELLS		(4096) /* 16KB */
 #define PAD_SIZE		(1024)  /* bytes */
 
 /* Data Stack and Return Stack sizes (1 cells = 4 byte) */
@@ -42,7 +46,6 @@
   The dictionary is stored as 16 bit ints, so endianess matters.
 */
 #define USE_LITTLE_ENDIAN
-
 
 // Define this if you want to allow floating point notation (which will
 // be converted to FIXED point.
