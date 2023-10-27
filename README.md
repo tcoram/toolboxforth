@@ -17,6 +17,7 @@ The end result: This makes for a more compacted application that fits on smaller
 
 ## Features
 
+* Coroutines!  Just added some preliminary support for coroutines.. Only really took one word "uram!".  By assigning differing memory areas (alloted via "allot") we can do tasking!
 * ROMable. The dictionary and RAM are separate address spaces (even if dictionary is in RAM).
 * Internal data structures/dictionary are FORTH hackable. Use @ ! for all system RAM stuff and dict! dict@ to mess with the dictionary. Dangerous. Expect to crash a lot.
 * A good portion is (self) implemented in FORTH. Just enuf C for speed and a minimal FORTH kernel.
