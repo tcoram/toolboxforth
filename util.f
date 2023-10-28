@@ -125,13 +125,15 @@ variable _endof
 
 \ Print out top item on stack
 \
-: . ( n -- ) sidx 1+ exit-if0- >string count type 32 emit ;
+: (.) ( n -- ) sidx 1+ exit-if0- >string count type ;
+: . ( n -- ) (.) 32 emit ;
 
-: u. ( u -- ) sidx 1+ exit-if0- u>string count type 32 emit ;
+: (u.) ( u -- ) sidx 1+ exit-if0- u>string count type ;
+: u. ( u -- ) (u.) 32 emit ;
 : h. ( u -- ) hex u. decimal ;
 
 : .s
-    [char] < emit sidx 1+ . [char] > emit 32 emit
+    [char] < emit sidx 1+ (.) [char] > emit 32 emit
     sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . loop ;
 
 
