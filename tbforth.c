@@ -73,7 +73,6 @@ inline void DICT_WRITE(CELL a, RAMC v) {
     dict_write(a,v);
   } else {
     tbforth_abort_request(ABORT_ILLEGAL);
-    tbforth_abort();
   }
 }
 inline void RAM_WRITE(CELL a, RAMC v) {
@@ -81,7 +80,6 @@ inline void RAM_WRITE(CELL a, RAMC v) {
     tbforth_ram[a]=v;
   }else {
     tbforth_abort_request(ABORT_ILLEGAL);
-    tbforth_abort();
   }
 }
 inline void DICT_APPEND(CELL c) {
@@ -89,7 +87,6 @@ inline void DICT_APPEND(CELL c) {
     dict_append(c);
   } else {
     tbforth_abort_request(ABORT_ILLEGAL);
-    tbforth_abort();
   }
 }    
 
@@ -98,12 +95,11 @@ inline void DICT_APPEND_STRING(char*s, RAMC l) {
     dict_append_string(s,l);
   } else {
     tbforth_abort_request(ABORT_ILLEGAL);
-    tbforth_abort();
   }
 }    
 #else
 #define DICT_WRITE(a,v) dict_write(a,v)
-#define RAM_WRITE(a,v) tbforth_ram[a]=v
+#define RAM_WRITE(a,v) tbforth_ram[a]=vx
 #define DICT_APPEND(c) dict_append(c)
 #define DICT_APPEND_STRING(s,l) dict_append_string(s,l)
 #endif
@@ -593,7 +589,8 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case STORE:
       r1 = dpop();
       r2 = dpop();
-      tbforth_ram[r1] = r2;
+      RAM_WRITE(r1,r2);
+      //      tbforth_ram[r1] = r2;
       break;
     case EXEC:
       r1 = dpop();
