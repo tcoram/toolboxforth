@@ -159,24 +159,14 @@
 
 : variable
     (create)
-    [compile] lit
-    (allot1) ,
+    [compile] dlit
+    (allot1) d,
     [compile] ;
 ;
 
-
-\ constants are stored in dictionary and are thus limited to 16 bits.
+\ constants are stored in dictionary as two 16 bit dictionary cells.
 \
-: constant ( n -<name>- )
-    (create)
-    [compile] lit ,
-    [compile] ; 
-; 
-
-
-\ dconstants are stored in dictionary as two 16 bit dictionary cells.
-\
-: dconstant ( d -<name>- )
+: constant ( d -<name>- )
     (create)
     [compile] dlit d,
     [compile] ; 
@@ -321,10 +311,11 @@ variable _leaveloop
 : allot ( n -- )  0 do (allot1) drop loop ;
 
 : byte-allot ( n -- ) RAMC /mod + allot  ;
-  
+
 \ Point to internally allocated (scratch) PAD
 \
 uram 6 + dslen + rslen + constant pad
+
 
 \ Scratch variable (be careful, it doesn't nest and may be modified by anyone)
 \

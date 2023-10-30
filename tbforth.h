@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "3.024"
-#define DICT_VERSION 15
+#define TBFORTH_VERSION "4.00"
+#define DICT_VERSION 16
 
 // Some (minimal) memory protection for ! and dict_write()
 //
@@ -209,7 +209,8 @@ enum {
   MCU_ENCRYPT,
   MCU_DECRYPT,
   MCU_MAC,
-  MCU_SLEEP
+  MCU_SLEEP,
+  MCU_WAKE_REASON
 };
 
 #define MCU_WORDS()		     \
@@ -234,4 +235,5 @@ enum {
   tbforth_cdef("gcm-encrypt", MCU_ENCRYPT); \
   tbforth_cdef("gcm-decrypt", MCU_DECRYPT); \
   tbforth_cdef("mac", MCU_MAC); \
+  tbforth_cdef("wake-reason", MCU_WAKE_REASON); \
 

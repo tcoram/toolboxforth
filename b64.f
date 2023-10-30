@@ -77,7 +77,7 @@ variable b64len
     3 +loop drop ;
     
 
-\ Encode RAM to 
+\ Encode RAM to RAM
 \
 : b64encode ( c-addr len dest - )
     ['] _+c@ is +b64dc@

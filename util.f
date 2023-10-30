@@ -63,13 +63,11 @@ variable _endof
 ; immediate
 
 
-\ Counts of RAM strings
+\ Counts of strings (RAM or dictionary)
 \
 : count ( addr -- addr cnt ) dup @ swap 1+  swap ;
+: dict-count count ;
 
-\ Counts of dict strings
-\
-: dict-count ( addr -- addr cnt ) dup dict@ swap 1+  swap ;
 
 : hex 16 base ! ;
 : decimal 10  base ! ;
@@ -93,7 +91,7 @@ variable _endof
 
 : s"   compiling?
     if 
-	postpone ," ['] dict-count , 
+	postpone ," ['] count , 
     else
 	34 word count
     then
@@ -108,15 +106,14 @@ variable _endof
 ; immediate
 
 : type ( addr count - )
-     dup 0> if 0 do  dup i +c@ emit  loop else drop then drop ;
+    dup 0> if 0 do  dup i +c@ emit  loop else drop then drop ;
 
-: dict-type ( addr count - )
-    dup 0> if 0 do  dup i +dict-c@ emit  loop else drop then drop ;
-
+: dict-type type ;
+ 
 
 : ."   compiling?
     if
-	postpone ," ['] dict-count , ['] dict-type ,
+	postpone ," ['] count , ['] type ,
     else
 	34 word count type
     then
@@ -146,10 +143,9 @@ variable _endof
 : assert" ( f -- )
     [compile] 0=
     postpone if
-    postpone ," [compile] dict-count [compile] dict-type
+    postpone ," [compile] count [compile] type
     [compile] abort
-    postpone then
-; immediate
+    postpone then ; immediate
 
 \ Version stuff. Show off how we handle strings.
 \
@@ -174,23 +170,23 @@ variable _cc			\ keep track of # of characters on a line
 : words ( -- )
     cr
     0 _cc !
-    lwa	dict@				\ pointer to last word
+    lwa	@				\ pointer to last word
     begin
 	dup				\ keep it on the stack 
 	\ Words look like this: 
 	\ [prevlink] [immediate/primitive name length] [name] [code] 
         \ name lengths are stored in the lower 6 bits -> 0x3F=63
-	1+ dict-count 63 and dup		\ get length of word's name
+	1+ count 63 and dup		\ get length of word's name
 	_cc @ + 74 > if cr 0 _cc ! then \ 74 characters per line
-	dup _cc +! dict-type 32 emit 32 emit	\ print word's name
+	dup _cc +! type 32 emit 32 emit	\ print word's name
 	2 _cc +!                        \ add in spaces
-	dict@				\ get prev link from last word
+	@				\ get prev link from last word
 	dup 0 =                        \ 0 link means no more words!
     until
     drop cr ;
 
 : dbytes>pad ( dict_addr -- )
-    dict-count 0 do dup i +dict-c@ pad c!+ loop ;
+    count 0 do dup i +c@ pad c!+ loop ;
 
 : ?dup   dup 0= if drop then ;
 : is-immediate? ( addr -- addr flag)
@@ -204,8 +200,8 @@ variable _cc			\ keep track of # of characters on a line
 
 : defer
     (create)
-    [compile] lit
-    (allot1) ,
+    [compile] dlit
+    (allot1) d,
     [compile] @
     [compile] exec
     [compile] ;
@@ -216,14 +212,14 @@ variable _cc			\ keep track of # of characters on a line
 \
 : is ( xt --)
     compiling? if
-	[compile] lit
+	[compile] dlit
 	postpone '
-	,
-	[compile] 1+
+	d,
+	[compile] 2+
 	[compile] dict@
 	[compile] !
     else
-	postpone ' 1+ dict@ !
+	postpone ' 2+ dict@ !
     then
 ; immediate
 
@@ -236,9 +232,9 @@ variable _cc			\ keep track of # of characters on a line
 \
 : to  ( u -<name> )
     compiling? if
-	[compile] lit  postpone ' , [compile] 1+ [compile] dict!
+	[compile] dlit  postpone ' d, [compile] 1+ [compile] dict-d!
     else
-	postpone ' 1+ dict!
+	postpone ' 1+ dict-d!
     then ; immediate
 
 
@@ -263,17 +259,17 @@ variable _cc			\ keep track of # of characters on a line
 \
 0 value DEBUG
 
-: (.debug") ( addr count - )
+: (debug") ( addr count - )
     DEBUG 0 = if drop drop exit then
    ." DBG " secs . ." : "
-    DEBUG 0 > if dict-type then
+    DEBUG 0 > if type then
     DEBUG 1 > if [char] : emit 32 emit .s then
     DEBUG 2 > if key [char] q = if r> exit then then cr ;
     
 : debug" ( <string> )
-    postpone s" [compile] (.debug") ; immediate
+    postpone s" [compile] (debug") ; immediate
 
-: (.debug-exec) ( addr - )
+: (debug-exec) ( addr - )
     DEBUG 0 = if drop exit then
    ." DBG " secs . ." : "
     DEBUG 0 > if exec then
@@ -281,7 +277,10 @@ variable _cc			\ keep track of # of characters on a line
     DEBUG 2 > if key [char] q = if r> exit then then cr ;
 
 : debug-exec ( <word> )
-    postpone ['] [compile] (.debug-exec) ; immediate
+    postpone ['] [compile] (debug-exec) ; immediate
 
+: .debug ( n - n )
+    DEBUG 0 =  if exit then ;
+    DEBUG 0 > if dup . then ;
 
 : init ;

@@ -99,7 +99,7 @@ inline void DICT_APPEND_STRING(char*s, RAMC l) {
 }    
 #else
 #define DICT_WRITE(a,v) dict_write(a,v)
-#define RAM_WRITE(a,v) tbforth_ram[a]=vx
+#define RAM_WRITE(a,v) tbforth_ram[a]=v
 #define DICT_APPEND(c) dict_append(c)
 #define DICT_APPEND_STRING(s,l) dict_append_string(s,l)
 #endif
@@ -341,11 +341,11 @@ void tbforth_load_prims(void) {
   store_prim("@", FETCH);
   store_prim("dict!", DICT_STORE);
   store_prim("dict@", DICT_FETCH);
-  store_prim("+dict-c@", DCHAR_FETCH);
   store_prim(",\"", COMMA_STRING); make_immediate();
   store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
   store_prim("+c@", CHAR_FETCH);
+  store_prim("+dict-c@", DCHAR_FETCH);
   store_prim("(create)", _CREATE); 
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
@@ -425,15 +425,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case IMMEDIATE:
       make_immediate();
-      break;
-    case RAM_BASE_ADDR:
-      dpush (0);
-      break;
-    case URAM_BASE_ADDR:
-      dpush(((char*)tbforth_uram - (char*)tbforth_ram)/4);
-      break;
-    case STORE_URAM_BASE_ADDR:
-      tbforth_uram = (struct tbforth_uram*) &tbforth_ram[dpop()];
       break;
     case SKIP_IF_ZERO:
       r1 = dpop(); r2 = dpop();
@@ -573,29 +564,52 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case RPOP:
       dpush(rpop());
       break;
+    case RAM_BASE_ADDR:
+      dpush (0x80000000 | 0);
+      break;
+    case URAM_BASE_ADDR:
+      dpush(0x80000000 | (((char*)tbforth_uram - (char*)tbforth_ram)/4));
+      break;
+    case STORE_URAM_BASE_ADDR:
+      tbforth_uram = (struct tbforth_uram*) &tbforth_ram[0x7FFFFFFF & dpop()];
+      break;
+    case FETCH:
     case DICT_FETCH:
       r1 = dpop();
-      dpush(tbforth_dict[r1]);
+      if (r1 & 0x80000000) {
+	dpush(tbforth_ram[r1 & 0x7FFFFFFF]);
+      } else {
+	dpush(tbforth_dict[r1]);
+      }
       break;
+    case STORE:
     case DICT_STORE:
       r1 = dpop();
       r2 = dpop();
-      DICT_WRITE(r1,r2);
-      break;
-    case FETCH:
-      r1 = dpop();
-      dpush(tbforth_ram[r1]);
-      break;
-    case STORE:
-      r1 = dpop();
-      r2 = dpop();
-      RAM_WRITE(r1,r2);
-      //      tbforth_ram[r1] = r2;
+      // when in a def, a variable (addr) is indistinguishable from a 16 bit word...
+      // we have explicit dict! and ! to deal with this.
+      //
+      //      if (r1 & 0x80000000)
+      if (cmd == STORE)
+	RAM_WRITE(0x7FFFFFFF & r1,r2);
+      else
+	DICT_WRITE(r1,r2);
       break;
     case EXEC:
       r1 = dpop();
       rpush(wd_idx);
       wd_idx = r1;
+      break;
+    case CHAR_FETCH:
+    case DCHAR_FETCH:
+      r1 = dpop();
+      r2 = dpop();
+      if (r2 & 0x80000000)
+	str1 =(char*)&tbforth_ram[0x7FFFFFFF & r2];
+      else
+	str1 =(char*)&tbforth_dict[r2];
+      str1+=r1;
+      dpush(0xFF & *str1);
       break;
     case EXIT:
       if (tbforth_uram->ridx > last_exec_rdix) return U_OK;
@@ -605,13 +619,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       b = next_char();
       dpush(b);
       break;
-    case CHAR_FETCH:
-      r1 = dpop();
-      r2 = dpop();
-      str1 =(char*)&tbforth_ram[r2];
-      str1+=r1;
-      dpush(0xFF & *str1);
-      break;
     case BYTE_COPY:
     case BYTE_CMP:
     case DICT_BYTE_COPY:
@@ -620,11 +627,11 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	RAMC from, dest, fidx, didx, cnt;
 	cnt = dpop();
 	didx = dpop();
-	dest = dpop();
+	dest = dpop() & 0x7FFFFFFF;
 	fidx = dpop();
 	from  = dpop();
 	str1 = (cmd == DICT_BYTE_COPY || cmd == DICT_BYTE_CMP) ?
-	  (char*)&tbforth_dict[from] + fidx : (char*)&tbforth_ram[from] + fidx;
+	  (char*)&tbforth_dict[from] + fidx : (char*)&tbforth_ram[from & 0x7FFFFFFF] + fidx;
 	str2 = (char*)&tbforth_ram[dest] + didx;
 	if (cmd == BYTE_CMP || cmd == DICT_BYTE_CMP)
 	  dpush(-(memcmp (str2, str1, cnt) == 0));
@@ -632,35 +639,28 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	  memcpy (str2, str1, cnt);
       }
       break;
-    case DCHAR_FETCH:
-      r1 = dpop();
-      r2 = dpop();
-      str1 =(char*)&tbforth_dict[r2];
-      str1+=r1;
-      dpush(0xFF & *str1);
-      break;
     case CHAR_STORE:
       r1 = dpop();
       r2 = dpop();
-      str1 =(char*)&tbforth_ram[r2];
+      if (r2 & 0x80000000)
+	str1 =(char*)&tbforth_ram[r2 & 0x7FFFFFFF];
+      else
+	str1 =(char*)&tbforth_dict[r2];
       str1+=r1;
       *str1 = dpop();
       break;
     case CHAR_APPEND:
       r1 = dpop();
-      r2 = tbforth_ram[r1];
-      str1 =(char*)&tbforth_ram[r1+1];
-      str1+=r2;
-      b = dpop();
-      *str1 = b;
-      tbforth_ram[r1]++;
-      break;
-    case NEXT:
-      str2 = PAD_STR;
-      str1 = tbforth_next_word();
-      memcpy(str2,str1, tbforth_iram->tibwordlen);
-      PAD_STRLEN = tbforth_iram->tibwordlen;		/* length */
-      dpush(PAD_ADDR);
+      if (r1 & 0x80000000) {
+	r1 &= 0x7FFFFFFF;
+	r2 = tbforth_ram[r1];
+	str1 =(char*)&tbforth_ram[r1+1];
+	tbforth_ram[r1]++;
+	str1+=r2;
+	b = dpop();
+	*str1 = b;
+      } else
+	tbforth_abort_request(ABORT_ILLEGAL);
       break;
     case COMMA_STRING:
       if (tbforth_iram->state == COMPILING) {
@@ -693,12 +693,19 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	DICT_WRITE(rpop(),dict_here());	/* jump over string */
       }
       break;
+    case NEXT:
+      str2 = PAD_STR;
+      str1 = tbforth_next_word();
+      memcpy(str2,str1, tbforth_iram->tibwordlen);
+      PAD_STRLEN = tbforth_iram->tibwordlen;		/* length */
+      dpush(PAD_ADDR | 0x80000000);
+      break;
     case CALLC:
       r1 = c_handle();
       if (r1 != U_OK) return (tbforth_stat)r1;
       break;
     case VAR_ALLOT:
-      dpush(VAR_ALLOT_1());
+      dpush(VAR_ALLOT_1() | 0x80000000);
       break;
     case DEF:
       tbforth_iram->state = COMPILING;
@@ -721,7 +728,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       DICT_APPEND(r1);
       break;
     case PARSE_NUM:
-      r1 = dpop();
+      r1 = dpop() & 0x7FFFFFFF;
       str1=tbforth_count_str((CELL)r1,(CELL*)&r1);
       str1[r1] = '\0';
       tbforth_abort_clr();
@@ -766,7 +773,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	else
 	  i32toa(dpop(),PAD_STR,tbforth_uram->base);
 	PAD_STRLEN=strlen(PAD_STR);
-	dpush(PAD_ADDR);
+	dpush(PAD_ADDR | 0x80000000);
       }
       break;
     case INTERP:
