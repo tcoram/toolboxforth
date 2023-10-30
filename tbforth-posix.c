@@ -8,6 +8,8 @@
 #include <string.h>
 #include <sys/time.h>
 #include <poll.h>
+#include <sys/socket.h>
+#include <netdb.h>
 #include "tbforth.h"
 
 
@@ -103,7 +105,7 @@ void load_ext_words () {
 tbforth_stat c_handle(void) {
   RAMC r2, r1 = dpop();
   FILE *fp;
-  static char buf[80*2];
+  static char buf[1024];
 
   switch(r1) {
   case OS_POLL:
@@ -197,14 +199,56 @@ tbforth_stat c_handle(void) {
   case OS_CLOSE:
     close(dpop());
     break;
+  case OS_TCP_CONN:
+    {
+      int sock;
+      char *s;
+      char port_s[80];
+      r1 = dpop();		/* port */
+      snprintf(port_s, 80, "%d", r1);
+      r2 = dpop();		/* hostname */
+      s = (char*)&tbforth_dict[r2+1];
+      strncpy(buf,s, tbforth_dict[r2]);
+      buf[tbforth_dict[r2]] = '\0';
+      
+      struct addrinfo hints, *addrs;  
+      memset(&hints, 0, sizeof(struct addrinfo));
+      hints.ai_family = AF_UNSPEC;
+      hints.ai_socktype = SOCK_STREAM;
+      if (0 == getaddrinfo(s, port_s, &hints, &addrs)) {
+	sock = socket(addrs->ai_family, addrs->ai_socktype, addrs->ai_protocol);
+	if (sock >= 0 ) {
+	  if (connect(sock, addrs->ai_addr, addrs->ai_addrlen) >= 0) {
+	    dpush((uint64_t)addrs >> 32);
+	    dpush((uint64_t)addrs & 0xFFFFFFFF);
+	    dpush(sock);
+	    goto TCP_OK;
+	  }
+	}
+      }
+    }
+    dpush(-1);
+  TCP_OK:
+    break;
+  case OS_TCP_DISCONN:
+    {
+      r1 = dpop();
+      close(r1);
+      r1 = dpop();
+      r2 = dpop();
+      struct addrinfo *addrs = (struct addrinfo*) ((uint64_t)r2 << 32 | r1);
+      freeaddrinfo(addrs);
+    }
+    break;
+    
   case OS_OPEN:
     {
       char *s;
       r1 = dpop();
       r2 = dpop();
-      s = (char*)&tbforth_ram[r2+1];
-      strncpy(buf,s, tbforth_ram[r2]);
-      buf[tbforth_ram[r2]] = '\0';
+      s = (char*)&tbforth_dict[r2+1];
+      strncpy(buf,s, tbforth_dict[r2]);
+      buf[tbforth_dict[r2]] = '\0';
       dpush(open(buf, r1));
     }
     break;

@@ -143,6 +143,7 @@ struct dict {
 }
 # define dict_end_def()
 
+extern CELL *tbforth_dict;
 extern struct tbforth_iram *tbforth_iram;
 extern struct tbforth_uram *tbforth_uram;
 /*
@@ -164,9 +165,10 @@ extern struct tbforth_uram *tbforth_uram;
 extern void tbforth_cdef (char* name, int val);
 
 // Some useful OS extensions...you can handle in c_handle() or not... its up to you
+// If you don't have them, just ignore them.
 //
 enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
-  OS_READB, OS_WRITEB, OS_MS, OS_SECS, OS_POLL};
+  OS_READB, OS_WRITEB, OS_MS, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN};
 
 #define OS_WORDS() \
   tbforth_cdef("secs", OS_SECS); \
@@ -178,7 +180,11 @@ enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
   tbforth_cdef("include", OS_INCLUDE); \
   tbforth_cdef("open-file", OS_OPEN); \
   tbforth_cdef("close-file", OS_CLOSE); \
-
+  tbforth_cdef("connect-tcp", OS_TCP_CONN); \
+  tbforth_cdef("close-tcp", OS_TCP_DISCONN); \
+  tbforth_cdef("write-byte", OS_WRITEB); \
+  tbforth_cdef("read-byte", OS_READB); \
+  
 
 // Some useful MCU extensions...you can handle in c_handle() or not... its up to you
 //

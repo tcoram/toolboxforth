@@ -321,11 +321,7 @@ variable _leaveloop
 : allot ( n -- )  0 do (allot1) drop loop ;
 
 : byte-allot ( n -- ) RAMC /mod + allot  ;
-
-\ Counted byte buffer
-\
-: cbyte-allot ( n --) 1 allot byte-allot ;
-    
+  
 \ Point to internally allocated (scratch) PAD
 \
 uram 6 + dslen + rslen + constant pad

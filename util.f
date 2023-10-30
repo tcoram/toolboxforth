@@ -130,7 +130,9 @@ variable _endof
 
 : (u.) ( u -- ) sidx 1+ exit-if0- u>string count type ;
 : u. ( u -- ) (u.) 32 emit ;
-: h. ( u -- ) hex u. decimal ;
+
+: h. ( u -- ) base @ swap  hex [char] $ emit u. base ! ;
+: b. ( u -- ) base @ swap binary [char] % emit u. base ! ;
 
 : .s
     [char] < emit sidx 1+ (.) [char] > emit 32 emit

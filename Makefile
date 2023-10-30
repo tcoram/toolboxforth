@@ -1,6 +1,6 @@
 ## CC=clang
 CFLAGS=-Wall -O
-LDFLAGS= -O -lm 
+LDFLAGS= -O
 
 
 tbforth-posix: tbforth-posix.o tbforth.o
