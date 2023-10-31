@@ -339,13 +339,13 @@ void tbforth_load_prims(void) {
   store_prim("r>", RPOP);
   store_prim("!", STORE);
   store_prim("@", FETCH);
-  store_prim("dict!", DICT_STORE);
-  store_prim("dict@", DICT_FETCH);
+  //  store_prim("dict!", DICT_STORE);
+  //  store_prim("dict@", DICT_FETCH);
   store_prim(",\"", COMMA_STRING); make_immediate();
   store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
   store_prim("+c@", CHAR_FETCH);
-  store_prim("+dict-c@", DCHAR_FETCH);
+  //  store_prim("+dict-c@", DCHAR_FETCH);
   store_prim("(create)", _CREATE); 
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
@@ -363,8 +363,8 @@ void tbforth_load_prims(void) {
   store_prim("abort", ABORT);
   store_prim("bcopy", BYTE_COPY);
   store_prim("bstr=", BYTE_CMP);
-  store_prim("dict-bcopy", DICT_BYTE_COPY);
-  store_prim("dict-bstr=", DICT_BYTE_CMP);
+  //  store_prim("dict-bcopy", DICT_BYTE_COPY);
+  //  store_prim("dict-bstr=", DICT_BYTE_CMP);
   store_prim(">string", NUM_TO_STR);
   store_prim(">num", PARSE_NUM);
   store_prim("u>string", UNUM_TO_STR);
@@ -574,7 +574,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       tbforth_uram = (struct tbforth_uram*) &tbforth_ram[0x7FFFFFFF & dpop()];
       break;
     case FETCH:
-    case DICT_FETCH:
       r1 = dpop();
       if (r1 & 0x80000000) {
 	dpush(tbforth_ram[r1 & 0x7FFFFFFF]);
@@ -583,7 +582,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       }
       break;
     case STORE:
-    case DICT_STORE:
       r1 = dpop();
       r2 = dpop();
       if (r1 & 0x80000000)
@@ -597,7 +595,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       wd_idx = r1;
       break;
     case CHAR_FETCH:
-    case DCHAR_FETCH:
       r1 = dpop();
       r2 = dpop();
       if (r2 & 0x80000000)
@@ -617,8 +614,6 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case BYTE_COPY:
     case BYTE_CMP:
-    case DICT_BYTE_COPY:
-    case DICT_BYTE_CMP:
       {
 	RAMC from, dest, fidx, didx, cnt;
 	cnt = dpop();
@@ -626,8 +621,8 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	dest = dpop() & 0x7FFFFFFF;
 	fidx = dpop();
 	from  = dpop();
-	str1 = (cmd == DICT_BYTE_COPY || cmd == DICT_BYTE_CMP) ?
-	  (char*)&tbforth_dict[from] + fidx : (char*)&tbforth_ram[from & 0x7FFFFFFF] + fidx;
+	str1 = (from & 0x80000000) ? (char*)&tbforth_ram[from & 0x7FFFFFFF] + fidx :
+	  (char*)&tbforth_dict[from] + fidx ;
 	str2 = (char*)&tbforth_ram[dest] + didx;
 	if (cmd == BYTE_CMP || cmd == DICT_BYTE_CMP)
 	  dpush(-(memcmp (str2, str1, cnt) == 0));

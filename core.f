@@ -37,12 +37,12 @@
  
 \ Low level dictionary access.
 \
-: dversion ( - u)  0 dict@ ;
-: wordsize ( - u) 1 dict@ ;
-: maxdict ( - u) 2 dict@ ;
+: dversion ( - u)  0 @ ;
+: wordsize ( - u) 1 @ ;
+: maxdict ( - u) 2 @ ;
 : (here) ( - a) 3 ;
 : lwa  ( - a) 4 ;
-: uram-top@ ( -- u) 5 dict@ ;
+: uram-top@ ( -- u) 5 @ ;
 
 
 \ Low level memory access. This is tightly bound to the tbforth implementation
@@ -173,6 +173,9 @@
     [compile] ; 
 ;
 
+
+: dict@ [compile] @ ; immediate
+: dict! [compile] ! ; immediate
 : ddict@ ( a - u)
   dup dict@ swap 1+ dict@ swap 16 lshift or ;
   
