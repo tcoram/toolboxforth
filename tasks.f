@@ -36,7 +36,7 @@ uram constant tsk0
 \ The black magic for tasking relies on the return stack...
 \
 : start-task ( tsk - )
-    dup end-task
+    [compile] dup [compile] end-task
     [compile] uram! ; immediate
 
 
@@ -59,13 +59,17 @@ uram constant tsk0
 variable tsk1  50 50 10 tsk1 make-task
 tsk1 .task
 
+
 variable tsk2 50 50 10 tsk2 make-task 
 tsk2 .task
+
 
 variable tsk3 10 10 2 tsk3 make-task 
 tsk3 .task
 
+
 : sub-a 15 1 do i . cr yield  loop  ;
+
 : co-a  start-task yield sub-a ;
 : co-b  start-task 15 1 do i 64 + emit cr yield loop ;
 
