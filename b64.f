@@ -9,45 +9,27 @@ create b64invs
 
 pad value b64pt
 
-defer +b64dc@
-: (b64decode) ( dict-caddr len coudrr - )
+: b64decode ( dict-caddr len coudrr - )
     dup 0 swap !
     to b64pt
     0 do
-	dup i +b64dc@ 43 - b64invs + dict@  6 lshift over ( caddr v caddr )   
-	i 1+ +b64dc@ 43 - b64invs + dict@  or ( caddr v) 
+	dup i +c@ 43 - b64invs + @  6 lshift over ( caddr v caddr )   
+	i 1+ +c@ 43 - b64invs + @  or ( caddr v) 
 	6 lshift  
-	over i 2 + +b64dc@  dup [char] = =
-	if drop else 43 -  b64invs + dict@ or then ( caddr v ) 
+	over i 2 + +c@  dup [char] = =
+	if drop else 43 -  b64invs + @ or then ( caddr v ) 
 	6 lshift  
-	over i 3 + +b64dc@  dup [char] = =
-	if drop else 43 - b64invs + dict@  or then ( caddr v ) 
+	over i 3 + +c@  dup [char] = =
+	if drop else 43 - b64invs + @  or then ( caddr v ) 
 	dup 16 rshift $ff and b64pt  c!+ ( caddr v) 
-	over i 2 + +b64dc@ [char] = =  not
+	over i 2 + +c@ [char] = =  not
 	if dup 8 rshift $ff and b64pt c!+ then ( caddr v) 
-	over i 3 + +b64dc@ [char] = = not
+	over i 3 + +c@ [char] = = not
 	if dup $ff and b64pt c!+ then ( caddr v) drop ( caddr) 
     4 +loop 
     drop ;
 
-\ 'is' doesn't work with primitives, so we need to spoof the primitive
-\
-: _+c@  +c@ ;
-: _+dict-c@ +dict-c@ ;
 
-\ Decode from RAM to RAM
-\
-: b64decode ( caddr len dest-caddr - )
-    ['] _+c@ is +b64dc@
-    (b64decode) ;
-
-\ Decode from dictionary to RAM
-\
-: b64decode-dict ( diccaddr len dest-caddr - )
-    ['] _+dict-c@ is +b64dc@
-    (b64decode) ;
-
-    
 variable bitsbuff
 variable b64len
 
@@ -57,7 +39,7 @@ variable b64len
 : 3bytesin ( addr idx -- addr cnt)
    0 bitsbuff !
    3 0 do
-      2dup i +  +b64dc@ bitsbuff @ 8 lshift + bitsbuff !
+      2dup i +  +c@ bitsbuff @ 8 lshift + bitsbuff !
    loop  
    b64len @  swap - ;
 
@@ -68,7 +50,7 @@ variable b64len
       bitsbuff @ 6 lshift bitsbuff !
    loop drop ;
 
-: (b64encode) ( addr len dest - )
+: b64encode ( addr len dest - )
     to b64pt
     0 b64pt !
     dup b64len ! 
@@ -77,17 +59,6 @@ variable b64len
     3 +loop drop ;
     
 
-\ Encode RAM to RAM
-\
-: b64encode ( c-addr len dest - )
-    ['] _+c@ is +b64dc@
-    (b64encode) ;
 
-\ Encode Dictionary to RAM
-\
-: b64encode-dict ( c-addr len dest - )
-    ['] _+dict-c@ is +b64dc@
-    (b64encode) ;
-
-: test-b64encode
-    s" hello world!!"  pad b64encode-dict  pad  count type cr ;
+: test-b64encode-dict
+    s" hello world!!"  pad b64encode  pad  count type cr ;
