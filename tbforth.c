@@ -274,11 +274,10 @@ enum {
   ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN, GREATER_THAN, GREATER_THAN_EQ,
-  INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE,  DICT_FETCH, DICT_STORE,
+  INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE, 
   COMMA_STRING,
-  VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, DCHAR_FETCH,
+  VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, 
   BYTE_COPY, BYTE_CMP,
-  DICT_BYTE_COPY, DICT_BYTE_CMP,
   POSTPONE, _CREATE, PARSE_NUM,
   INTERP, NUM_TO_STR, UNUM_TO_STR,
   LAST_PRIMITIVE
@@ -339,13 +338,10 @@ void tbforth_load_prims(void) {
   store_prim("r>", RPOP);
   store_prim("!", STORE);
   store_prim("@", FETCH);
-  //  store_prim("dict!", DICT_STORE);
-  //  store_prim("dict@", DICT_FETCH);
   store_prim(",\"", COMMA_STRING); make_immediate();
   store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
   store_prim("+c@", CHAR_FETCH);
-  //  store_prim("+dict-c@", DCHAR_FETCH);
   store_prim("(create)", _CREATE); 
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
@@ -363,8 +359,6 @@ void tbforth_load_prims(void) {
   store_prim("abort", ABORT);
   store_prim("bcopy", BYTE_COPY);
   store_prim("bstr=", BYTE_CMP);
-  //  store_prim("dict-bcopy", DICT_BYTE_COPY);
-  //  store_prim("dict-bstr=", DICT_BYTE_CMP);
   store_prim(">string", NUM_TO_STR);
   store_prim(">num", PARSE_NUM);
   store_prim("u>string", UNUM_TO_STR);
@@ -624,7 +618,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
 	str1 = (from & 0x80000000) ? (char*)&tbforth_ram[from & 0x7FFFFFFF] + fidx :
 	  (char*)&tbforth_dict[from] + fidx ;
 	str2 = (char*)&tbforth_ram[dest] + didx;
-	if (cmd == BYTE_CMP || cmd == DICT_BYTE_CMP)
+	if (cmd == BYTE_CMP)
 	  dpush(-(memcmp (str2, str1, cnt) == 0));
 	else
 	  memcpy (str2, str1, cnt);
