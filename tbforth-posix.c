@@ -376,7 +376,6 @@ int main(int argc, char* argv[]) {
       config_close();
     }
   }
-  if (stat == 0) stat=tbforth_interpret ("mark USER-WORDS");
   if (stat == 0) stat=tbforth_interpret("init");
   if (stat == 0) stat=tbforth_interpret("cr memory cr");
   do {
