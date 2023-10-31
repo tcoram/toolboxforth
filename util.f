@@ -260,7 +260,7 @@ variable _cc			\ keep track of # of characters on a line
 
 : (debug") ( addr count - )
     DEBUG 0 = if drop drop exit then
-   ." DBG " secs . ." : "
+   ." #DBG " secs . ." : "
     DEBUG 0 > if type then
     DEBUG 1 > if [char] : emit 32 emit .s then
     DEBUG 2 > if key [char] q = if r> exit then then cr ;
@@ -270,7 +270,7 @@ variable _cc			\ keep track of # of characters on a line
 
 : (debug-exec) ( addr - )
     DEBUG 0 = if drop exit then
-   ." DBG " secs . ." : "
+   ." #DBG " secs . ." : "
     DEBUG 0 > if exec then
     DEBUG 1 > if [char] : emit 32 emit .s then
     DEBUG 2 > if key [char] q = if r> exit then then cr ;
@@ -280,5 +280,6 @@ variable _cc			\ keep track of # of characters on a line
 
 : .debug ( n - n )
     DEBUG 0 =  if exit then
-    DEBUG 0 > if dup . then ;
+    DEBUG 0 > if ." #DBG : " dup . cr then ;
+
 : init ;
