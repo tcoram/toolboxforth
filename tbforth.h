@@ -138,7 +138,7 @@ struct dict {
 # define dict_append(cell) tbforth_dict[dict->here] = cell, dict_incr_here(1)
 # define dict_write(idx,cell) tbforth_dict[idx] = cell
 # define dict_append_string(src,len) { \
-    strncpy((char*)((tbforth_dict )+(dict->here)),src,len);			\
+    memcpy((char*)((tbforth_dict )+(dict->here)),src,len);			\
     dict->here += (len/BYTES_PER_CELL) + (len % BYTES_PER_CELL); \
 }
 # define dict_end_def()
