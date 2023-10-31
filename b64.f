@@ -9,7 +9,7 @@ create b64invs
 
 pad value b64pt
 
-: b64decode ( dict-caddr len coudrr - )
+: b64decode ( caddr len coudrr - )
     dup 0 swap !
     to b64pt
     0 do
@@ -33,7 +33,7 @@ pad value b64pt
 variable bitsbuff
 variable b64len
 
-: alphabase ( u -- c ) $3F and ," ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" 1+ swap  +dict-c@ ;
+: alphabase ( u -- c ) $3F and ," ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/" 1+ swap  +c@ ;
 : storecode ( u f -- ) if drop 61 else alphabase then  b64pt c!+  ;
 
 : 3bytesin ( addr idx -- addr cnt)
