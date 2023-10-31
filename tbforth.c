@@ -586,11 +586,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     case DICT_STORE:
       r1 = dpop();
       r2 = dpop();
-      // when in a def, a variable (addr) is indistinguishable from a 16 bit word...
-      // we have explicit dict! and ! to deal with this.
-      //
-      //      if (r1 & 0x80000000)
-      if (cmd == STORE)
+      if (r1 & 0x80000000)
 	RAM_WRITE(0x7FFFFFFF & r1,r2);
       else
 	DICT_WRITE(r1,r2);

@@ -201,7 +201,7 @@ variable _cc			\ keep track of # of characters on a line
 : defer
     (create)
     [compile] dlit
-    (allot1) d,
+    (allot1) $80000000 or d,
     [compile] @
     [compile] exec
     [compile] ;
@@ -215,11 +215,11 @@ variable _cc			\ keep track of # of characters on a line
 	[compile] dlit
 	postpone '
 	d,
-	[compile] 2+
-	[compile] dict@
+	[compile] 1+
+	[compile] ddict@
 	[compile] !
     else
-	postpone ' 2+ dict@ !
+	postpone ' 1+ ddict@ !
     then
 ; immediate
 
@@ -232,9 +232,9 @@ variable _cc			\ keep track of # of characters on a line
 \
 : to  ( u -<name> )
     compiling? if
-	[compile] dlit  postpone ' d, [compile] 1+ [compile] dict-d!
+	[compile] dlit  postpone ' d, [compile] 1+ [compile] ddict!
     else
-	postpone ' 1+ dict-d!
+	postpone ' 1+ ddict!
     then ; immediate
 
 
@@ -246,7 +246,6 @@ variable _cc			\ keep track of # of characters on a line
 \
 : forget-to-mark ( <marker)  next-word dup (find-head)
     dup if dict@ >r (find-code) exec (here) dict! r> lwa dict! else 2drop  then  ;
-
 
 : time-it ( addr - )
   ms >r exec ms r> - . ."  ms elapsed" cr ;
@@ -280,7 +279,6 @@ variable _cc			\ keep track of # of characters on a line
     postpone ['] [compile] (debug-exec) ; immediate
 
 : .debug ( n - n )
-    DEBUG 0 =  if exit then ;
+    DEBUG 0 =  if exit then
     DEBUG 0 > if dup . then ;
-
 : init ;

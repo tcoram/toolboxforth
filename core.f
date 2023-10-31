@@ -160,7 +160,8 @@
 : variable
     (create)
     [compile] dlit
-    (allot1) d,
+\    (allot1) $80000000 or d,
+    (allot1)  d,
     [compile] ;
 ;
 
@@ -172,10 +173,10 @@
     [compile] ; 
 ;
 
-: dict-d@ ( a - u)
+: ddict@ ( a - u)
   dup dict@ swap 1+ dict@ swap 16 lshift or ;
   
-: dict-d! ( d a - )
+: ddict! ( d a - )
     over 16 rshift over dict!
     swap $0000ffff and swap 1+ dict! ;
 
