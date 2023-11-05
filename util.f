@@ -220,8 +220,7 @@ variable _cc			\ keep track of # of characters on a line
 	[compile] !
     else
 	postpone ' 1+ ddict@ !
-    then
-; immediate
+    then ; immediate
 
 \ Synonym of a constant...
 \
@@ -240,7 +239,7 @@ variable _cc			\ keep track of # of characters on a line
 
 \ Place a marker
 \
-: mark ( <marker> ) create ;
+: mark here (create) [compile] lit , [compile] ; ;
 
 \ forget everything down to (and including) marker
 \
