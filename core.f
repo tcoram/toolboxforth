@@ -1,13 +1,5 @@
 (create) : 1 iram ! (create) 1 iram ! here 2 iram + !  postpone ;  ;
-
 : \ next-char 0 - 3 0skip? \ ; immediate
-: ( next-char 41 - 3  0skip? ( ; immediate ( enable stack comments )
-: { next-char 125 - 3  0skip? { ; immediate { Alternate comment }
-
-\ The first line in this file defines our major definin word: ":"
-\
-\ The next 3 lines bootstrap in the ability to handle comments.
-
 
 \  toolboxforth - A tiny ROMable 16/32-bit FORTH-like scripting language
 \          for microcontrollers.
@@ -33,6 +25,19 @@
 \  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 \  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
+    
+\ The first line in this file defines our major defining word: ":"
+\ The following line bootstraps in the ability to handle comments.
+\ (Notice that is tail call recursive!)    
+
+\
+\ A clearer definition of colon would be (using words we define later):
+\
+\  (create) : is-compiling (create) is-compiling here compiling-word postopone ; ;
+    
+: ( next-char 41 - 3  0skip? ( ; immediate ( enable stack comments )
+: { next-char 125 - 3  0skip? { ; immediate { Alternate comment }
 
 \ A RAM CELL is always 32 bits (4 bytes).
 \ A Dictionary CELL is always 16 bits (2 bytes).
