@@ -363,9 +363,8 @@ int main(int argc, char* argv[]) {
   OUTFP = stdout;
   if (argc < 2) {
     tbforth_load_prims();
-    load_ext_words();
-
     stat = load_f("./core.f");
+    load_ext_words();
     if (stat == 0) stat = load_f("./util.f");
     if (stat == 0) stat = load_f("./console.f");
     if (stat == 0) stat = load_f("./tests.f");

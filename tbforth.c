@@ -345,7 +345,7 @@ void tbforth_load_prims(void) {
   store_prim("(create)", _CREATE); 
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
-  store_prim(":", DEF); 
+  //  store_prim(":", DEF); 
   store_prim(";", EXIT);  make_immediate();
   store_prim("immediate", IMMEDIATE);
   store_prim("postpone", POSTPONE); make_immediate();

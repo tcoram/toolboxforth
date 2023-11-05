@@ -1,8 +1,13 @@
+(create) : 1 iram ! (create) 1 iram ! here 2 iram + !  postpone ;  ;
+
 : \ next-char 0 - 3 0skip? \ ; immediate
 : ( next-char 41 - 3  0skip? ( ; immediate ( enable stack comments )
 : { next-char 125 - 3  0skip? { ; immediate { Alternate comment }
 
-\ The above 3 lines bootstrap in the ability to handle comments.
+\ The first line in this file defines our major definin word: ":"
+\
+\ The next 3 lines bootstrap in the ability to handle comments.
+
 
 \  toolboxforth - A tiny ROMable 16/32-bit FORTH-like scripting language
 \          for microcontrollers.
@@ -57,6 +62,7 @@
 : compiling? ( - f) state? 1 = ;
 : ramsize ( - f) 1 iram + @  ;
 : compiling-word! ( a --) 2 iram + ! ;
+
 
 \ Task based RAM (uram)
 \
