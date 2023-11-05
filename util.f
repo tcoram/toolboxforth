@@ -282,3 +282,5 @@ variable _cc			\ keep track of # of characters on a line
     DEBUG 0 > if ." #DBG : " dup . cr then ;
 
 : init ;
+
+

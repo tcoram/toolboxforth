@@ -1,4 +1,10 @@
 mark TESTS
+
+variable (bench)
+: bench{ ms (bench) ! ;
+: }bench ms (bench) @ - . ." ms elapsed" ;
+
+
 : test-do  10000000 0 do i drop loop ;
 : test-for  10000000 for r@ drop next ;
 : test-begin-until 10000000  A ! begin -1 A +! A @ 0= until ;
