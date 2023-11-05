@@ -74,10 +74,10 @@ For example, you should be able to walk the dictionary and mess with it (see the
 for "words" in util.f for a dictionary reading example.
 
 For a more destructive example, the following (from util.f) implements a "forget" that will
-erase words down to a "marker".  See util.f for an example using a marker called TEST
+erase words down to, and including,  a "marker". 
 
 ```
-: mark ( <name> ) create ;
+: mark here (create) [compile] lit , [compile] ; ;
 : forget-to-mark ( <marker)  next-word dup (find-head)
     dup if dict@ >r (find-code) exec (here) dict! r> lwa dict! else 2drop  then  ;
 ```
