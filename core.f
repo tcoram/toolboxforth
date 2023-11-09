@@ -333,14 +333,14 @@ uram 6 + dslen + rslen + constant pad
 
 \ Scratch variable (be careful, it doesn't nest and may be modified by anyone)
 \
-variable A
+variable R1
 
 \ Implement traditional forth "word" using the scratch pad.
 \
 : word ( delim -- addr)
-    A !
+    R1 !
     0 pad !
     begin
-	next-char dup A @ = over 0= or if drop pad exit then
+	next-char dup R1 @ = over 0= or if drop pad exit then
 	pad c!+
     again ;

@@ -8,7 +8,7 @@ create b64invs
 
 
 pad value b64pt
-
+    
 : b64decode ( caddr len coudrr - )
     dup 0 swap !
     to b64pt

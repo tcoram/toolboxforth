@@ -99,8 +99,8 @@ tsk3 .task
 : test-do-no-task  10000000 0 do i drop loop ;
 : test-do  10000000 0 do i drop yield loop ;
 : test-for  10000000 for r@ drop yield next ;
-: test-begin-until 10000000  A ! begin -1 A +! A @ yield 0= until ;
-: test-begin-again 10000000  A ! begin -1 A +! A @ 0= if exit then yield again ;
+: test-begin-until 10000000  R1 ! begin -1 R1 +! R1 @ yield 0= until ;
+: test-begin-again 10000000  R1 ! begin -1 R1 +! R1 @ 0= if exit then yield again ;
 : test-begin-until-stack 10000000 begin 1- dup yield 0= until drop ;
 : tail-call 1- dup 0> if yield tail-call then drop ;
 : test-tail-call 10000000 tail-call ;
