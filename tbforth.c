@@ -269,13 +269,13 @@ void tbforth_init(void) {
 // LIT must be 1!
 //
 enum { 
-  LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  STORE_URAM_BASE_ADDR, RPICK,
-  HERE, RAM_BASE_ADDR, INCR, DECR,
+  LIT=1, COLD, DLIT, ABORT, DEF, IMMEDIATE, URAM_BASE_ADDR,  STORE_URAM_BASE_ADDR, RTOP,
+  RPICK,  HERE, RAM_BASE_ADDR, INCR, DECR,
   ADD, SUB, MULT, DIV, MULT_DIV, MOD, AND, JMP, JMP_IF_ZERO, SKIP_IF_ZERO, EXIT,
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN, GREATER_THAN, GREATER_THAN_EQ,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE, 
-  COMMA_STRING,
+  COMMA_STRING, CHAR_ADDR_STORE, CHAR_FETCH_INCR, CHAR_STORE_INCR,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, 
   BYTE_COPY, BYTE_CMP,
   POSTPONE, _CREATE, PARSE_NUM,
@@ -333,11 +333,15 @@ void tbforth_load_prims(void) {
   store_prim("<", LESS_THAN);
   store_prim(">", GREATER_THAN);
   store_prim(">=", GREATER_THAN_EQ);
+  store_prim("r@", RTOP);
   store_prim("rpick", RPICK);
   store_prim(">r", RPUSH);
   store_prim("r>", RPOP);
   store_prim("!", STORE);
   store_prim("@", FETCH);
+  store_prim("A!", CHAR_ADDR_STORE);
+  store_prim("(c@+)", CHAR_FETCH_INCR);
+  store_prim("(c!+)", CHAR_STORE_INCR);
   store_prim(",\"", COMMA_STRING); make_immediate();
   store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
@@ -394,8 +398,10 @@ void tbforth_abort(void) {
   tbforth_uram->didx = -1;
 }
 
+
 tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
   /* Scratch/Register variables for exec */
+  static char* A;			/* (char) address register */
   RAMC r1, r2;
   char *str1, *str2;
   char b;
@@ -522,6 +528,9 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = dpop();
       dtop() %= r1;
       break;
+    case RTOP:
+      dpush(rpick(0));
+      break;
     case RPICK:
       r1 = dpop();
       r2 = rpick(r1);
@@ -587,6 +596,21 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = dpop();
       rpush(wd_idx);
       wd_idx = r1;
+      break;
+    case CHAR_ADDR_STORE:
+      r1 = dpop();
+      if (r1 &  0x80000000)
+	A =(char*)&tbforth_ram[0x7FFFFFFF & r1];
+      else
+	A =(char*)&tbforth_dict[r1];
+      break;
+    case CHAR_FETCH_INCR:
+      dpush(0xFF & *A);
+      A++;
+      break;
+    case CHAR_STORE_INCR:
+      *A = dpop();
+      A++;
       break;
     case CHAR_FETCH:
       r1 = dpop();
