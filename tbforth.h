@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.01"
-#define DICT_VERSION 17
+#define TBFORTH_VERSION "4.02"
+#define DICT_VERSION 18
 
 // Some (minimal) memory protection for ! and dict_write()
 //
@@ -168,7 +168,7 @@ extern void tbforth_cdef (char* name, int val);
 // If you don't have them, just ignore them.
 //
 enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
-  OS_READB, OS_WRITEB, OS_MS, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN};
+  OS_READB, OS_WRITEB, OS_MS, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN, OS_RAND};
 
 #define OS_WORDS() \
   tbforth_cdef("secs", OS_SECS); \
@@ -184,6 +184,8 @@ enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
   tbforth_cdef("close-tcp", OS_TCP_DISCONN); \
   tbforth_cdef("write-byte", OS_WRITEB); \
   tbforth_cdef("read-byte", OS_READB); \
+  tbforth_cdef("random-bytes", OS_RAND);
+
   
 
 // Some useful MCU extensions...you can handle in c_handle() or not... its up to you
@@ -210,7 +212,9 @@ enum {
   MCU_DECRYPT,
   MCU_MAC,
   MCU_SLEEP,
-  MCU_WAKE_REASON
+  MCU_WAKE_REASON,
+  MCU_COLD,
+  MCU_RESTART
 };
 
 #define MCU_WORDS()		     \
@@ -236,4 +240,6 @@ enum {
   tbforth_cdef("gcm-decrypt", MCU_DECRYPT); \
   tbforth_cdef("mac", MCU_MAC); \
   tbforth_cdef("wake-reason", MCU_WAKE_REASON); \
+  tbforth_cdef("cold", MCU_COLD); \
+  tbforth_cdef("restart", MCU_RESTART); \
 

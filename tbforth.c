@@ -275,7 +275,8 @@ enum {
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_EQ_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN, GREATER_THAN, GREATER_THAN_EQ,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE, 
-  COMMA_STRING, CHAR_ADDR_STORE, CHAR_FETCH_INCR, CHAR_STORE_INCR,
+  COMMA_STRING, CHAR_A_ADDR_STORE, CHAR_A_FETCH, CHAR_A_STORE, CHAR_A_INCR,
+  CHAR_A_FETCH_INCR, CHAR_A_STORE_INCR,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, 
   BYTE_COPY, BYTE_CMP,
   POSTPONE, _CREATE, PARSE_NUM,
@@ -339,9 +340,12 @@ void tbforth_load_prims(void) {
   store_prim("r>", RPOP);
   store_prim("!", STORE);
   store_prim("@", FETCH);
-  store_prim("A!", CHAR_ADDR_STORE);
-  store_prim("(c@+)", CHAR_FETCH_INCR);
-  store_prim("(c!+)", CHAR_STORE_INCR);
+  store_prim("A!", CHAR_A_ADDR_STORE);
+  store_prim("A+", CHAR_A_INCR);
+  store_prim("(c@)", CHAR_A_FETCH);
+  store_prim("(c!)", CHAR_A_STORE);
+  store_prim("(c@+)", CHAR_A_FETCH_INCR);
+  store_prim("(c!+)", CHAR_A_STORE_INCR);
   store_prim(",\"", COMMA_STRING); make_immediate();
   store_prim("+c!", CHAR_STORE);
   store_prim("c!+", CHAR_APPEND);
@@ -597,20 +601,27 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       rpush(wd_idx);
       wd_idx = r1;
       break;
-    case CHAR_ADDR_STORE:
+    case CHAR_A_ADDR_STORE:
       r1 = dpop();
       if (r1 &  0x80000000)
 	A =(char*)&tbforth_ram[0x7FFFFFFF & r1];
       else
 	A =(char*)&tbforth_dict[r1];
       break;
-    case CHAR_FETCH_INCR:
-      dpush(0xFF & *A);
-      A++;
+    case CHAR_A_INCR:
+      A+=dpop();
       break;
-    case CHAR_STORE_INCR:
+    case CHAR_A_FETCH:
+      dpush(0xFF & *A);
+      break;
+    case CHAR_A_STORE:
       *A = dpop();
-      A++;
+      break;
+    case CHAR_A_FETCH_INCR:
+      dpush(0xFF & *A++);
+      break;
+    case CHAR_A_STORE_INCR:
+      *A++ = dpop();
       break;
     case CHAR_FETCH:
       r1 = dpop();
