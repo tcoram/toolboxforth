@@ -246,9 +246,17 @@ tbforth_stat c_handle(void) {
       char *s;
       r1 = dpop();
       r2 = dpop();
-      s = (char*)&tbforth_dict[r2+1];
-      strncpy(buf,s, tbforth_dict[r2]);
-      buf[tbforth_dict[r2]] = '\0';
+      if (r2 & 0x80000000) {
+	r2 &=0x7FFFFFFF;
+	s = (char*)&tbforth_ram[r2+1];
+	strncpy(buf,s, tbforth_ram[r2]);
+	buf[tbforth_ram[r2]] = '\0';
+      } else {
+	s = (char*)&tbforth_dict[r2+1];
+	strncpy(buf,s, tbforth_dict[r2]);
+	buf[tbforth_dict[r2]] = '\0';
+      }
+      
       dpush(open(buf, r1));
     }
     break;

@@ -17,6 +17,8 @@ The end result: This makes for a more compacted application that fits on smaller
 
 ## Features
 
+* *NEW* The A register. Storing an address (variable or dictionary) into the A register allows access via (c!+) and (c@+) directly (without having to do offsets like in +c! and +c@.
+
 * *NEW* Consolidated @ (fetch) access to dictionary and RAM.  RAM addresses are now identified
 by the leftmost bit (of 32 bit word) being set. This way, we can distinguish between
 RAM and dictionary via using just @ (32 bit value for RAM, 16 bit value for dictionary. This doesn't work for ! (store) as the semantics are too confusing (still use dict! there). The main benefit is that string access is uniform (of all things!)

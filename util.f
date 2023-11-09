@@ -136,6 +136,10 @@ variable _endof
     sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . loop ;
 
 
+\ Create a word to access memory via +c@ and +c!
+\ 
+: caddr (  idx addr -<name>-)
+  (create) [compile] dlit d, [compile] lit , [compile] ; ;
 
 
 \ if not true, print out a string and abort to top level
@@ -147,13 +151,11 @@ variable _endof
     [compile] abort
     postpone then ; immediate
 
-\ Version stuff. Show off how we handle strings.
-\
 : memory
     9 emit
     ." Dict: " here .  ." cells (" here 2* . ." bytes) used out of "
-    maxdict . ." cells."
-    ."  (" here 100 * maxdict / . ." % used)." cr
+    maxdictcells . ." cells."
+    ."  (" here 100 * maxdictcells / . ." % used)." cr
     9 emit
     ." Total RAM : " ramsize . ." cells (" ramsize wordsize * . ." bytes)" cr
     9 emit

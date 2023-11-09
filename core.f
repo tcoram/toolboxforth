@@ -34,8 +34,12 @@
 \
 \ A clearer definition of colon would be (using words we define later):
 \
-\  (create) : is-compiling (create) is-compiling here compiling-word postopone ; ;
+\  (create) : is-compiling (create) is-compiling here compiling-word! postpone ; ;
+
     
+\ More comment words
+\    
+
 : ( next-char 41 - 3  0skip? ( ; immediate ( enable stack comments )
 : { next-char 125 - 3  0skip? { ; immediate { Alternate comment }
 
@@ -49,7 +53,7 @@
 \
 : dversion ( - u)  0 @ ;
 : wordsize ( - u) 1 @ ;
-: maxdict ( - u) 2 @ ;
+: maxdictcells ( - u) 2 @ ;
 : (here) ( - a) 3 ;
 : lwa  ( - a) 4 ;
 : uram-top@ ( -- u) 5 @ ;
@@ -90,11 +94,21 @@
 : tib iram 6 + ;		( starts with cnt... )
 : tibbuf iram 7 + ;
 
-\ Works but much slower than builtin C version
+
+\ Stuff that doesn't have to be in the C core, but is there for speed.
+\
 \ : rpick  dsa ridx + 1+ 1+ + @ ;
+\ : r@ ( - a ) R @ ;
+\ : dup ( a - a a) T @ ;
+\ : over ( a b - a b a) T 1- @ ;
+\ : swap ( a b - b a) >r >r 1 rpick r> r> drop ;
+\ : rot ( a b c - c b a) >r >r >r 2 rpick 1 rpick r> r> r> drop drop ;
+\ : mod ( y x  - u) over swap ( y y x) dup >r  ( y y x)  / r> * - ;
+\ : = ( a b - f) - 0= ;
 
 \ Stack item count
-: depth ( -- u) sidx 1 + ;
+\
+: depth ( -- u) sidx 1  + ; 
 
 
 \ no operation
@@ -112,30 +126,16 @@
 
 \ Stack manipulation
 \
-\ : dup ( a -- a a) 0 pick ;
-\ : over ( a b -- a b a) 1 pick ;
-\ : swap ( a b -- b a) >r >r 1 rpick r> r> drop ;
-\ : rot ( a b c -- c b a) >r >r >r 2 rpick 1 rpick r> r> r> 2drop ;
 : 2dup ( x y - x y x y)  over over ;
 : 2drop ( x y - ) drop drop ;
 : nip ( x y - y) over xor xor ;
 : 2swap ( a b c d - c d a b) rot >r rot r> ;
-
-\ Comparisons
-\
-\ : > swap < ;
-\ : <= 1+ < ;
-\ : >= swap <= ;
 
 \ Misc useful stuff
 \
 : +! ( u a - ) dup >r @ + r> ! ;
 : incr ( a - ) 1 swap +! ;
 : decr ( a - ) -1 swap +! ;
-\ : mod ( y x  -- u)
-\    over swap ( y y x) dup >r  ( y y x)
-\    / r> * - ;
-\ : = ( a b -- f) - 0= ;
 
 : /mod ( u u - r q)
   2dup / >r mod r> ;
@@ -157,7 +157,6 @@
     ['] ,  ,				\ store a comma (for later get word)
 ; immediate
 
-: r@ ( - u) [compile] lit 0 ,  [compile] rpick ; immediate
 
 \ A create that simply returns address of here after created word.
 \
