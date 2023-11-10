@@ -185,7 +185,7 @@ tbforth_stat c_handle(void) {
       char b;
       r2=dpop();
       if (read(r2,&b,1) == -1)
-	dbpush(-1);
+	dpush(-1);
       else
 	dpush(b);
     }
