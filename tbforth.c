@@ -116,9 +116,8 @@ inline void DICT_APPEND_STRING(char*s, RAMC l) {
 RAMC tbforth_ram[TOTAL_RAM_CELLS];
 
 void tbforth_cdef (char* name, int val) {
-  char n[80];
-  snprintf(n, 80, ": %s %d cf ;", name, val);
-  tbforth_interpret(n);
+  snprintf(PAD_STR, PAD_SIZE, ": %s %d cf ;", name, val);
+  tbforth_interpret(PAD_STR);
 }
 
 RAMC parse_num(char *s, uint8_t base) {
