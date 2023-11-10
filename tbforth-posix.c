@@ -184,8 +184,10 @@ tbforth_stat c_handle(void) {
     {
       char b;
       r2=dpop();
-      (void)read(r2,&b,1);
-      dpush(b);
+      if (read(r2,&b,1) == -1)
+	dbpush(-1);
+      else
+	dpush(b);
     }
     break;
   case OS_WRITEB:
