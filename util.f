@@ -141,6 +141,10 @@ variable _endof
 : caddr (  idx addr -<name>-)
   (create) [compile] dlit d, [compile] lit , [compile] ; ;
 
+\ Complimentary to above... instead store the caddr word into A for (c@) and (c!)
+\
+: A+! ( caddr idx - ) swap A! A+ ;
+
 
 \ if not true, print out a string and abort to top level
 \
