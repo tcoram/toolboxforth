@@ -12,7 +12,7 @@
 
 // Some (minimal) memory protection for ! and dict_write()
 //
-#define GUARD_RAILS
+// #define GUARD_RAILS
 
 /* 
    The Dictionary: Max is 64K words (64KB * 2 bytes). 
@@ -29,8 +29,8 @@
 #define PAD_SIZE		(1024)  /* bytes */
 
 /* Data Stack and Return Stack sizes (1 cells = 4 byte) */
-#define DS_CELLS 		100
-#define RS_CELLS 		100
+#define DS_CELLS 		50
+#define RS_CELLS 		50
 
 /*
  Input buffer... longest line you can give tbforth to interpret.
