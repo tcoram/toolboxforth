@@ -402,7 +402,7 @@ void tbforth_abort(void) {
 }
 
 
-tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
+tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
   /* Scratch/Register variables for exec */
   static char* A;			/* (char) address register */
   RAMC r1, r2;
@@ -411,12 +411,12 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
   CELL cmd;
 
   while(1) {
-    if (wd_idx == 0) {
+    if (ip == 0) {
       tbforth_abort_request(ABORT_ILLEGAL);
       tbforth_abort();		/* bad instruction */
       return E_ABORT;
     }
-    cmd = tbforth_dict[wd_idx++];
+    cmd = tbforth_dict[ip++];
 
     switch (cmd) {
     case 0:
@@ -431,7 +431,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case SKIP_IF_ZERO:
       r1 = dpop(); r2 = dpop();
-      if (r2 == 0) wd_idx += r1;
+      if (r2 == 0) ip += r1;
       break;
     case DUP:
       dpush(dtop());
@@ -453,11 +453,11 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       dtop() = r1;
       break;
     case JMP:
-      wd_idx = dpop();
+      ip = dpop();
       break;
     case JMP_IF_ZERO:
       r1 = dpop(); r2 = dpop();
-      if (r2 == 0) wd_idx = r1;
+      if (r2 == 0) ip = r1;
       break;
     case HERE:
       dpush(dict_here());
@@ -466,12 +466,12 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       tbforth_init();
       break;
     case LIT:  
-      dpush(tbforth_dict[wd_idx++]);
+      dpush(tbforth_dict[ip++]);
       break;
     case DLIT:  
-      dpush((((uint32_t)tbforth_dict[wd_idx])<<16) |
-	    (uint16_t)tbforth_dict[wd_idx+1]); 
-      wd_idx+=2;
+      dpush((((uint32_t)tbforth_dict[ip])<<16) |
+	    (uint16_t)tbforth_dict[ip+1]); 
+      ip+=2;
       break;
     case INCR:
       dtop()++; 
@@ -597,8 +597,8 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case EXEC:
       r1 = dpop();
-      rpush(wd_idx);
-      wd_idx = r1;
+      rpush(ip);
+      ip = r1;
       break;
     case CHAR_A_ADDR_STORE:
       r1 = dpop();
@@ -634,7 +634,7 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case EXIT:
       if (tbforth_uram->ridx > last_exec_rdix) return U_OK;
-      wd_idx = rpop();
+      ip = rpop();
       break;
     case CNEXT:
       b = next_char();
@@ -801,8 +801,8 @@ tbforth_stat exec(CELL wd_idx, bool toplevelprim,uint8_t last_exec_rdix) {
     default:
       if (cmd > LAST_PRIMITIVE) {
 	/* Execute user word by calling until we reach primitives */
-	rpush(wd_idx);
-	wd_idx = tbforth_dict[wd_idx-1]; /* wd_idx-1 is current word */
+	rpush(ip);
+	ip = tbforth_dict[ip-1]; /* ip-1 is current word */
 	//	goto CHECK_STAT;
       } else {
 	tbforth_abort_request(ABORT_ILLEGAL);
@@ -842,14 +842,14 @@ CELL find_word(char* s, uint8_t slen, RAMC* addr, bool *immediate, char *primiti
 tbforth_stat interpret_tib() {
   tbforth_stat stat;
   char *word;
-  CELL wd_idx;
+  CELL wd;
   bool immediate = 0;
   char primitive = 0;
   while(*(word = tbforth_next_word()) != 0) {
-    wd_idx = find_word(word,tbforth_iram->tibwordlen,0,&immediate,&primitive);
+    wd = find_word(word,tbforth_iram->tibwordlen,0,&immediate,&primitive);
     switch (tbforth_iram->state) {
     case 0:			/* interpret mode */
-      if (wd_idx == 0) {	/* number or trash */
+      if (wd == 0) {	/* number or trash */
 	RAMC num = parse_num(word,tbforth_uram->base);
 	if (tbforth_aborting()) {
 	  tbforth_abort_request(ABORT_NAW);
@@ -858,7 +858,7 @@ tbforth_stat interpret_tib() {
 	}
 	dpush(num);
       } else {
-	stat = exec(wd_idx,primitive,tbforth_uram->ridx-1);
+	stat = exec(wd,primitive,tbforth_uram->ridx-1);
 	if (stat != U_OK) {
 	  tbforth_abort();
 	  //	  tbforth_abort_clr();
@@ -867,7 +867,7 @@ tbforth_stat interpret_tib() {
       }
       break;
     case COMPILING:			/* in the middle of a colon def */
-      if (wd_idx == 0) {	/* number or trash */
+      if (wd == 0) {	/* number or trash */
 	RAMC num = parse_num(word,tbforth_uram->base);
 	if (tbforth_aborting()) {
 	  tbforth_abort();
@@ -883,7 +883,7 @@ tbforth_stat interpret_tib() {
 	dict_end_def();
 	tbforth_iram->compiling_word = 0;
       } else if (immediate) {	/* run immediate word */
-	stat = exec(wd_idx,primitive,tbforth_uram->ridx-1);
+	stat = exec(wd,primitive,tbforth_uram->ridx-1);
 	if (stat != U_OK) {
 	  tbforth_abort_request(ABORT_ILLEGAL);
 	  tbforth_abort();
@@ -893,11 +893,11 @@ tbforth_stat interpret_tib() {
       } else {			/* just compile word */
 	if (primitive) {
 	  /* OPTIMIZATION: inline primitive */
-	  DICT_APPEND(tbforth_dict[wd_idx]);
+	  DICT_APPEND(tbforth_dict[wd]);
 	} else {
 	  /* OPTIMIZATION: skip null definitions */
-	  if (tbforth_dict[wd_idx] != EXIT) {
-	    if (wd_idx == tbforth_iram->compiling_word) { 
+	  if (tbforth_dict[wd] != EXIT) {
+	    if (wd == tbforth_iram->compiling_word) { 
 	      /* Natural recursion for such a small language is dangerous.
 		 However, tail recursion is quite useful for getting rid
 		 of BEGIN AGAIN/UNTIL/WHILE-REPEAT and DO LOOP in some
@@ -908,7 +908,7 @@ tbforth_stat interpret_tib() {
 	      DICT_APPEND(tbforth_iram->compiling_word);
 	      DICT_APPEND(JMP);
 	    } else {
-	      DICT_APPEND(wd_idx);
+	      DICT_APPEND(wd);
 	    }
 	  }
 	}
