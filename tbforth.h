@@ -7,7 +7,7 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.02"
+#define TBFORTH_VERSION "4.03"
 #define DICT_VERSION 18
 
 // Some (minimal) memory protection for ! and dict_write()
