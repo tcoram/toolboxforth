@@ -122,14 +122,23 @@ variable _endof
 
 \ Print out top item on stack
 \
-: (.) ( n -- ) sidx 1+ exit-if0- >string count type ;
-: . ( n -- ) (.) 32 emit ;
+: (.) ( n - ) sidx 1+ exit-if0- >string count type ;
+: . ( n - ) (.) 32 emit ;
 
-: (u.) ( u -- ) sidx 1+ exit-if0- u>string count type ;
-: u. ( u -- ) (u.) 32 emit ;
+\ unsigned
+\
+: (u.) ( u - ) sidx 1+ exit-if0- u>string count type ;
+: u. ( u - ) (u.) 32 emit ;
 
-: h. ( u -- ) base @ swap  hex [char] $ emit u. base ! ;
-: b. ( u -- ) base @ swap binary [char] % emit u. base ! ;
+\ hex and binary
+\
+: h. ( u - ) base @ swap  hex [char] $ emit . base ! ;
+: b. ( u - ) base @ swap binary [char] % emit u. base ! ;
+
+\ fixed point
+\
+: f. ( f - ) 1000000 /mod (.) [char] . emit abs . ;
+: fu. ( f - ) 1000000 /mod (u.) [char] . emit u. ;
 
 : .s
     [char] < emit sidx 1+ (.) [char] > emit 32 emit
