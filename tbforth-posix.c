@@ -206,13 +206,18 @@ tbforth_stat c_handle(void) {
       int sock;
       char *s;
       char port_s[80];
-      r1 = dpop();		/* port */
+      r1 = dpop();              /* port */
       snprintf(port_s, 80, "%d", r1);
-      r2 = dpop();		/* hostname */
-      s = (char*)&tbforth_dict[r2+1];
-      strncpy(buf,s, tbforth_dict[r2]);
-      buf[tbforth_dict[r2]] = '\0';
-      
+      r2 = dpop();              /* hostname */
+      if (r2 & 0x80000000) {
+	s = (char*)&tbforth_ram[(r2 & 0x7FFFFFFF) +1];
+	strncpy(buf,s,tbforth_ram[r2 & 0x7FFFFFFF]);
+	buf[tbforth_ram[r2 & 0x7FFFFFFF]] = '\0';
+      } else {
+	s = (char*)&tbforth_dict[r2+1];
+	strncpy(buf,s, tbforth_dict[r2]);
+	buf[tbforth_dict[r2]] = '\0';
+      }
       struct addrinfo hints, *addrs;  
       memset(&hints, 0, sizeof(struct addrinfo));
       hints.ai_family = AF_UNSPEC;
@@ -224,6 +229,7 @@ tbforth_stat c_handle(void) {
 	    dpush((uint64_t)addrs >> 32);
 	    dpush((uint64_t)addrs & 0xFFFFFFFF);
 	    dpush(sock);
+	    //	    printf("addr=%lx\n", (uint64_t)addrs);
 	    goto TCP_OK;
 	  }
 	}
@@ -236,9 +242,10 @@ tbforth_stat c_handle(void) {
     {
       r1 = dpop();
       close(r1);
-      r1 = dpop();
-      r2 = dpop();
-      struct addrinfo *addrs = (struct addrinfo*) ((uint64_t)r2 << 32 | r1);
+      uint64_t r164 = (uint64_t)dpop() & 0xFFFFFFFF;
+      uint64_t r264 = (uint64_t)dpop();
+      struct addrinfo *addrs = (struct addrinfo*) (r264 << 32 | r164);
+      //      printf("r2=%lx, r1=%lx, addr=%lx\n", r264, r164, (uint64_t)addrs);
       freeaddrinfo(addrs);
     }
     break;
