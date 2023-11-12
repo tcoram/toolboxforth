@@ -221,8 +221,10 @@
 \
 
 \ First "for". It's simpler and faster than do loop... but not as flexible
+\  It also always execute at least once.. regardless of value.
 \
 : for ( cnt -- faddr)
+  [compile] 1-
   [compile] >r
   here ; immediate
 
@@ -232,7 +234,7 @@
   [compile] 1-
   [compile] dup
   [compile] >r
-  [compile] 0=
+  [compile] 0<
   [compile] lit
   ,					\ store for's here
   [compile] 0jmp?
