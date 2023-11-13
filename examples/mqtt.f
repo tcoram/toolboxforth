@@ -1,13 +1,13 @@
 \ MQTT client
 
 variable mq-fd
-variable _mqsess 2 allot
+variable tcp-addr 2 allot
 
 : mq-local-open ( port - fd or error)
-    c" 127.0.0.1" swap connect-tcp  dup mq-fd ! 0> if _mqsess ! _mqsess 1+ ! then mq-fd @ ;
+    c" 127.0.0.1" swap connect-tcp  dup mq-fd ! 0> if tcp-addr ! tcp-addr 1+ ! then mq-fd @ ;
 
 : mq-close ( - )
-    mq-fd @ 0> if _mqsess 1+ @ _mqsess @ mq-fd @  close-tcp  -1 mq-fd ! then ;
+    mq-fd @ 0> if tcp-addr 1+ @ tcp-addr @ mq-fd @  close-tcp  -1 mq-fd ! then ;
 
 : mq-rb ( - c) mq-fd @ read-byte dup 0< if ." read error" cr abort then  ;
 : mq-wb ( c -)  mq-fd @ write-byte  0< if ." write error" abort then ;
