@@ -32,7 +32,7 @@ RAM and dictionary via using just @ (32 bit value for RAM, 16 bit value for dict
 * Full interactive console on MCU. Just connect via terminal program at 115200 baud.
 * MCU Stub words. Develop MCU targeted apps on desktop and just deploy the image to MCU with minimal dev on MCU.
 * FORTH "macros" and compilation via [compile], immediate and postpone. Rewrite the compiler on the fly!
-* Tail call optimized recursion.
+* Tail call recursion.  While normal nested recursion is not supported (yet), you can do tail call recursion.
 * Hackable. Everything is hackable. In fact, almost everything is hackable from FORTH itself.
 * Inspired by the dozens of FORTHs I've used over the years, but it is it's own thing. Don't expect any standards compliance.
 * Ugly. Yeah, this needs not only code refactoring, but conceptual refactoring.
