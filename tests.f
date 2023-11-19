@@ -28,3 +28,14 @@ variable (bench)
     ." testing begin .. until-stack: "
     ['] test-begin-until-stack time-it  ;
 
+variable I
+variable D
+: factor ( n - )
+    2 D ! 1 I !
+    >r
+    begin
+	D @ dup * r@  > if r> drop exit then
+	r@ D @ mod 0= if r> drop D @ exit then
+	I @ D +!  2 I !
+    again ;
+
