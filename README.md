@@ -6,8 +6,7 @@ A throwback to an 80s style of roll-your-own-even-if-you-shouldn't language desi
 
 This is "toolboxforth".  It's a FORTH implementation that has been in my "toolbox"
 since 2009 (under the name uForth). Back then, I used it primarily on an MSP430.
-Today it targets the ESP32, Arduino 32 bit (Cortex M)  and POSIX compliant operating systems.  Backport to MSP430
-coming soon!!!
+Today it targets the ESP32, Arduino 32 bit (Cortex M)  and POSIX compliant operating systems.  Backport to MSP430 coming soon!!!
 
 This is a 32 bit FORTH with a 16 bit dictionary.  What this means is that the
 dictionary "op codes" are 16 bit but numbers (RAM, stacks) are 32 bits.  Special provision
@@ -19,9 +18,9 @@ The end result: This makes for a more compacted application that fits on smaller
 
 * *NEW* The A register. Storing an address (variable or dictionary) into the A register allows access via (c!+) and (c@+) directly (without having to do offsets like in +c! and +c@.
 
-* *NEW* Consolidated @ (fetch) access to dictionary and RAM.  RAM addresses are now identified
+* *NEW* Consolidated @ and !  access to dictionary and RAM.  RAM addresses are now identified
 by the leftmost bit (of 32 bit word) being set. This way, we can distinguish between
-RAM and dictionary via using just @ (32 bit value for RAM, 16 bit value for dictionary. This doesn't work for ! (store) as the semantics are too confusing (still use dict! there). The main benefit is that string access is uniform (of all things!)
+RAM and dictionary via using just @ (32 bit value for RAM, 16 bit value for dictionary.
 
 * *NEW* Coroutines!  Just added some preliminary support for coroutines.. Only really took one word "uram!".  By assigning differing memory areas (alloted via "allot") we can do tasking!
 * ROMable. The dictionary and RAM are separate address spaces (even if dictionary is in RAM).
