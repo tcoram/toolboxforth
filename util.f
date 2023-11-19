@@ -144,6 +144,9 @@ variable _endof
     [char] < emit sidx 1+ (.) [char] > emit 32 emit
     sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . loop ;
 
+\ Traditional "recurse" word for instrumenting recursion.
+\
+: recurse lwa @ dup 1+ count nip 63 and + [compile] dlit d, [compile] exec ; immediate
 
 \ Create a word to access memory via +c@ and +c!
 \ 
@@ -164,41 +167,6 @@ variable _endof
     [compile] abort
     postpone then ; immediate
 
-: memory
-    9 emit
-    ." Dict: " here .  ." cells (" here 2* . ." bytes) used out of "
-    maxdictcells . ." cells."
-    ."  (" here 100 * maxdictcells / . ." % used)." cr
-    9 emit
-    ." Total RAM : " ramsize . ." cells (" ramsize wordsize * . ." bytes)" cr
-    9 emit
-    ." Data Stack: " dslen . ." cells. " 
-    ." Return Stack: " rslen . ." cells."  cr
-    9 emit
-    ." User RAM: " uram-top@ .
-    ." cells (" uram-top@ wordsize * . ." bytes) used out of " uram-size .
-    ." cells" cr ;
-
-\ Words
-\
-variable _cc			\ keep track of # of characters on a line
-: words ( -- )
-    cr
-    0 _cc !
-    lwa	@				\ pointer to last word
-    begin
-	dup				\ keep it on the stack 
-	\ Words look like this: 
-	\ [prevlink] [immediate/primitive name length] [name] [code] 
-        \ name lengths are stored in the lower 6 bits -> 0x3F=63
-	1+ count 63 and dup		\ get length of word's name
-	_cc @ + 74 > if cr 0 _cc ! then \ 74 characters per line
-	dup _cc +! type 32 emit 32 emit	\ print word's name
-	2 _cc +!                        \ add in spaces
-	@				\ get prev link from last word
-	dup 0 =                        \ 0 link means no more words!
-    until
-    drop cr ;
 
 : dbytes>pad ( dict_addr -- )
     count 0 do dup i +c@ pad c!+ loop ;
@@ -295,6 +263,43 @@ variable _cc			\ keep track of # of characters on a line
 : .debug ( n - n )
     DEBUG 0 =  if exit then
     DEBUG 0 > if ." #DBG : " dup . cr then ;
+
+: memory
+    9 emit
+    ." Dict: " here .  ." cells (" here 2* . ." bytes) used out of "
+    maxdictcells . ." cells."
+    ."  (" here 100 * maxdictcells / . ." % used)." cr
+    9 emit
+    ." Total RAM : " ramsize . ." cells (" ramsize wordsize * . ." bytes)" cr
+    9 emit
+    ." Data Stack: " dslen . ." cells. " 
+    ." Return Stack: " rslen . ." cells."  cr
+    9 emit
+    ." User RAM: " uram-top@ .
+    ." cells (" uram-top@ wordsize * . ." bytes) used out of " uram-size .
+    ." cells" cr ;
+\ Words
+\
+variable _cc			\ keep track of # of characters on a line
+: words ( -- )
+    cr
+    0 _cc !
+    lwa	@				\ pointer to last word
+    begin
+	dup				\ keep it on the stack 
+	\ Words look like this: 
+	\ [prevlink] [immediate/primitive name length] [name] [code] 
+        \ name lengths are stored in the lower 6 bits -> 0x3F=63
+	1+ count 63 and dup		\ get length of word's name
+	_cc @ + 74 > if cr 0 _cc ! then \ 74 characters per line
+	dup _cc +! type 32 emit 32 emit	\ print word's name
+	2 _cc +!                        \ add in spaces
+	@				\ get prev link from last word
+	dup 0 =                        \ 0 link means no more words!
+    until
+    drop cr ;
+
+
 
 : init ;
 
