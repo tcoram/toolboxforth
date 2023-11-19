@@ -54,7 +54,9 @@
 ;
 
 
-
+\ ** Dictionary and Memory
+\
+\ First off..
 \ A RAM CELL is always 32 bits (4 bytes).
 \ A Dictionary CELL is always 16 bits (2 bytes).
 \
@@ -120,11 +122,11 @@
 : depth ( -- u) sidx 1  + ; 
 
 
-\ no operation
+\ No operation... do we really need a nop? It's really just a placeholder...
 \
 : nop ;
 
-\ Useful number stuff
+\ Useful numeric short cuts.
 \
 : negate -1 * ;
 : not 0= ;
@@ -145,21 +147,24 @@
 : +! ( u a - ) dup >r @ + r> ! ;
 : incr ( a - ) 1 swap +! ;
 : decr ( a - ) -1 swap +! ;
+: /mod ( u u - r q)  2dup / >r mod r> ;
 
-: /mod ( u u - r q)
-  2dup / >r mod r> ;
-
-\ Index to exec'able code
+\ ** Word Creation and Addressing
+\
+\ Index to exec'able code of a wowr
 \
 : ' ( -<word>- a) next-word (find-code) ;
 : ['] next-word (find-code)  1 ,  , ; immediate \ hack: LIT *is* 1
 
-\ Index to header of word
+\ Index to header of word.
 \
 : '& ( -<word>- a) next-word (find-head) ;
 : ['&] next-word (find-head)  1 ,  , ; immediate \ hack: LIT *is* 1
 
-\ Helper word for building the below constructs.
+\ Helper word for building the below constructs. There is much difference between
+\ [compile] and postpone, but the extra level of indirection is useful: postpone
+\ "postpones" a word's invocation  while [compile] explicitely lays down a word
+\ without executing it.
 \
 : [compile]
     postpone [']			\ for later: get word
@@ -167,7 +172,8 @@
 ; immediate
 
 
-\ A create that simply returns address of here after created word.
+\ A create that simply returns address of here after created word.  There isn't currently
+\ a DOES> companion... I'm not sure it is needed.
 \
 : create
     (create)
@@ -176,10 +182,11 @@
     [compile] ;
 ;
 
+\ Variable names are in the dictionary...however their values are in RAM.
+\
 : variable
     (create)
     [compile] dlit
-\    (allot1) $80000000 or d,
     (allot1)  d,
     [compile] ;
 ;
@@ -193,17 +200,27 @@
 ;
 
 
+\ More explicit stuff... for when we really, really want to be specific
+\ that we are manipulating dictionary space and not RAM space.
+\ It's worth noting here (and now), that we are a Harvard architecture Forth.
+\ Dictionary and RAM are two different spaces.  This makes it easier to port
+\ to microcontrollers with distinct Flash and RAM (e.g. if you wish to execute
+\ the dictionary from Flash, etc).
+\
 : dict@ [compile] @ ; immediate
 : dict! [compile] ! ; immediate
 : ddict@ ( a - u)
   dup dict@ swap 1+ dict@ swap 16 lshift or ;
-  
 : ddict! ( d a - )
     over 16 rshift over dict!
     swap $0000ffff and swap 1+ dict! ;
 
-\ Conditionals
-
+\ ** Conditionals...
+\
+\ Here is the traditional if else then.  I am going to try and
+\ reduce the usage of 'else' as it tends to make for verbose word definitions
+\ (refactor!), but it is here if you need it.
+\
 : if ( -- ifaddr)
     [compile] lit			\ precede placeholder
     here				\ push 'if' address on the stack
@@ -220,13 +237,12 @@
     [compile] jmp			\ compile an uncoditional jmp to 'then'
 ; immediate
 
-
 : then ( ifaddr|elseaddr -- )
     here swap dict!			\ resolve 'if' or 'else' jmp address
 ; immediate
 
 
-\ Looping
+\ **Looping
 \
 
 \ First "for". It's simpler and faster than do loop... but not as flexible
@@ -236,7 +252,6 @@
   [compile] 1-
   [compile] >r
   here ; immediate
-
 
 : next ( faddr -- )
   [compile] r>
@@ -249,7 +264,9 @@
   [compile] 0jmp?
   [compile] r> [compile] drop ; immediate
 
-variable _leaveloop
+\ Now, the traditional do loop. 
+\ It gets verbose/complicated...
+\
 
 : do ( limit start -- doaddr)
     [compile] swap			( -- start limit)
@@ -265,6 +282,9 @@ variable _leaveloop
     [compile] lit 2 , [compile] rpick	\ pick index from return stack
 ; immediate
 
+\ We need a temporary variable for resolving how/where to leave...
+\
+variable _leaveloop
 : leave ( -- )
     [compile] lit			\ precede placeholder
     here _leaveloop !			\ store address for +loop resolution
@@ -272,6 +292,9 @@ variable _leaveloop
     [compile] jmp			\ jmp out of here
 ; immediate
 
+\ Remember, no decrementing loops... need a -loop for this. Surprisingly, I
+\ think this matches the standard...
+\
 : +loop ( doaddr n -- )
     [compile] r>			\ ( -- start{idx})
     [compile] +				\ ( -- idx+n)
@@ -301,8 +324,15 @@ variable _leaveloop
     [compile] drop [compile] drop
 ; immediate
 
+\ Exit looks simple, but is tricky. Remember: top of the return stack is the caller of
+\ exit and we are essentially saying drop that and go to the caller's caller.
+\ Exit is tremendously useful alternative to "else" in if then constructs.
+\
 : exit  r> drop ;
 
+\ Begin loop variations... they are more straight forward than counting loops
+\ (and more flexible!).  They always begin with...
+\
 : begin  here ; immediate
 
 : again ( here -- )
@@ -331,10 +361,11 @@ variable _leaveloop
     [compile] 0jmp?
 ; immediate
 
-: dup? dup 0= 0= if dup then ;
-
+\ ** Miscelanious Memory stuff
+\
+\ Let's formalize how we allocate RCELLs and bytes.
+\
 : allot ( n -- )  0 do (allot1) drop loop ;
-
 : byte-allot ( n -- ) RCELL /mod + allot  ;
 
 \ Point to internally allocated (scratch) PAD
@@ -355,3 +386,4 @@ variable R1
 	next-char dup R1 @ = over 0= or if drop pad exit then
 	pad c!+
     again ;
+
