@@ -32,7 +32,7 @@ RAM and dictionary via using just @ (32 bit value for RAM, 16 bit value for dict
 * Full interactive console on MCU. Just connect via terminal program at 115200 baud.
 * MCU Stub words. Develop MCU targeted apps on desktop and just deploy the image to MCU with minimal dev on MCU.
 * FORTH "macros" and compilation via [compile], immediate and postpone. Rewrite the compiler on the fly!
-* Tail call recursion.  While normal nested recursion is not supported (yet), you can do tail call recursion.
+* Tail call recursion!
 * Hackable. Everything is hackable. In fact, almost everything is hackable from FORTH itself.
 * Inspired by the dozens of FORTHs I've used over the years, but it is it's own thing. Don't expect any standards compliance.
 * Ugly. Yeah, this needs not only code refactoring, but conceptual refactoring.
@@ -67,6 +67,13 @@ must provide an "index" (byte count) into the 32 bit words.
 This C code is gnarly, but defines just enough FORTH to bootstrap a more usable FORTH.
 See *.f files for more insight into this opinionated implementation...
 Some words that could be coded in FORTH are left implemented in C mainly for speed...
+
+Words are compiled into the dictionary as follows:
+`[prevword-cell] [name length & bits] [packed name characters...] [primitive|cells..]`
+
+where name length is the lower 6 bits and the upper two bits are reserved, characters
+are packed 2 bytes per CELL and followed by a list of primitives or cells.
+
 
 The FORTH code has direct (via indexing) access to the critical RAM and dictionary
 structures/pointers in the C code via @ and dict@ respectively. Take a look at core.f.
