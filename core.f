@@ -107,20 +107,53 @@
 : tib iram 6 + ;		( starts with cnt... )
 : tibbuf iram 7 + ;
 
-
 \ ** Core words in C
 \
-\ Documentation TBD:
+\  lit    ( - u )  - pulls the next item in dictionary as a 16 bit number
+\  dlit   (  - u ) - pulls the next item in dictionary as a 32 bit number
+\  drop   ( u - )  - drops top item from stack
+\  jmp    ( a - ) - Jumps to dictionary address
+\  0jmp?  ( a f - ) - Jumps to address if f is 0
+\  0skip? ( u f - ) - Skips ahead u DCELLS if f is 0
+\  ,      ( u - ) - lays 16 bit number into dictionary in increments here
+\  d,     ( u - ) - lays 32 bit number into dictionary in increments here (by DCELL)
+\  * / + - and or xor ( u1 u2 - u3) - binary operators
+\  lshift rshift ( u b - u) - shift u left/right b bits
+\  */ ( u1 u2 u3 - u4) - multiply u1 and u2 (to a temp 64 bit result) and divide by u3
+\  0= 0< ( u - f) - comparisons against 0
+\  >r r>  - push or pop value to/from return stack
+\  !  @ - store/retrieve 32 bit values to/from either RAM or dictionary address
+\  +c! +c@ - Store/retrieve a byte to "counted" variable at address and increment count
+\  A! ( a - ) - Store RAM or dictionary address in A (mainly to access as 8 bit values)
+\  A+ ( u - ) - Adjust address pointer in A by u bytes
+\  (c@) ( - c) - Retrieve a byte from address pointed to by A
+\  (c!) ( c -) - Store a byte into  address pointed to by A
+\  (c@+) ( - c) - Retrieve a byte from address pointed to by A and incr A
+\  (c!+) ( - c) - Store a byte at address pointed to by A and incr A
+\  (create) ( <name> ) - Create a dictionary entry with name
+\  next-char ( - c) - retrieve next character from tib
+\  next-word ( - a u) - retrieve next word from tib and return addr and count
+\  (find-head) ( a u - a|0) - Find head of word definition for counted word string at a 
+\  (find-code) ( a u - a|0) - Find code/definition for countted word string at a
+\  ; ( - ) - terminate a word definition (go out of compile state)
+\  immediate - mark last compiled word as "immediate"
+\  postpone - do not exec an immediate word
+\  (allot1) - allocate 1 RCELL in RAM
+\  bcopy -
+\  bstr= -
+\  >num - 
+\  u>string -
+\  exec  ( a - ) - execute code address on stack
+\  uram ( - a) - address of user ram (e.g. stacks, variables, etc)
+\  uram! ( a - ) - set address of user ram  (e.g. stacks, variables, etc)
+\  iram ( - a) - address of iram
+\  interpret ( - f) - run outer intepreter on contents of tib and return status
+\  cf - ( ... u - ?) - execute extended C function
+\  here (  - a) - address of top of dictionary
+\  cold ( - ) reset dictionary to original state and restart interpreter
+\  abort ( - ) abort to top level interpretr
 \
-\ lit dlit drop jmp 0jmp? 0skip? , d,
-\ + - and or xor invert lshift rshift * / */ 0= 0<
-\ >r r> ! @  A! A+ (c@) (c!) (c@+) (c!+) ," +c! +c@
-\ (create) next-word next-char (find-head) (find-code) ; immediate postpone
-\ (allot1) bcopy bstr= >string >num u>string
-\ exec uram uram! iram interpret cf here  cold abort
-
-\
-\ Some Stuff that doesn't have to be in the C core, but is there for speed:
+\ *** Some Stuff that doesn't have to be in the C core, but is there for speed:
 \
 \ : 1+ 1 + ;
 \ : 1- 1 - ;
@@ -136,6 +169,9 @@
 \ : < ( a b - f) - 0< ;
 \ : > ( a b - f) swap < ;
 \ : >= ( a b - ) - 0< 0= ;
+\ :  dlit   (  <num> ) 
+
+
 \ Stack item count
 \
 : depth ( -- u) sidx 1  + ; 
