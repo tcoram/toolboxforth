@@ -146,7 +146,7 @@ variable _endof
 
 \ Traditional "recurse" word for instrumenting recursion.
 \
-: recurse lwa @ dup 1+ count nip 63 and + [compile] lit , [compile] exec ; immediate
+: recurse lwa @ 1+ count 63 and 2/ + [compile] lit , [compile] exec ; immediate
 
 \ Create a word to access memory via +c@ and +c!
 \ 
@@ -278,12 +278,13 @@ variable _endof
     ." User RAM: " uram-top@ .
     ." cells (" uram-top@ wordsize * . ." bytes) used out of " uram-size .
     ." cells" cr ;
-\ Words
+
+\ Words  -- this is the longest definition here, but mostly comments...
+\   It still should be refactored..
 \
-variable _cc			\ keep track of # of characters on a line
 : words ( -- )
     cr
-    0 _cc !
+    0 R1 !
     lwa	@				\ pointer to last word
     begin
 	dup				\ keep it on the stack 
@@ -291,9 +292,9 @@ variable _cc			\ keep track of # of characters on a line
 	\ [prevlink] [immediate/primitive name length] [name] [code] 
         \ name lengths are stored in the lower 6 bits -> 0x3F=63
 	1+ count 63 and dup		\ get length of word's name
-	_cc @ + 74 > if cr 0 _cc ! then \ 74 characters per line
-	dup _cc +! type 32 emit 32 emit	\ print word's name
-	2 _cc +!                        \ add in spaces
+	R1 @ + 74 > if cr 0 R1 ! then \ 74 characters per line
+	dup R1 +! type 32 emit 32 emit	\ print word's name
+	2 R1 +!                        \ add in spaces
 	@				\ get prev link from last word
 	dup 0 =                        \ 0 link means no more words!
     until
