@@ -270,13 +270,13 @@ variable _endof
     maxdictcells . ." cells."
     ."  (" here 100 * maxdictcells / . ." % used)." cr
     9 emit
-    ." Total RAM : " ramsize . ." cells (" ramsize wordsize * . ." bytes)" cr
+    ." Total RAM : " ramsize . ." cells (" ramsize RCELL * . ." bytes)" cr
     9 emit
     ." Data Stack: " dslen . ." cells. " 
     ." Return Stack: " rslen . ." cells."  cr
     9 emit
-    ." User RAM: " uram-top@ .
-    ." cells (" uram-top@ wordsize * . ." bytes) used out of " uram-size .
+    ." User RAM: " uramsize .
+    ." cells (" uramsize RCELL * . ." bytes) used out of " uram-size .
     ." cells" cr ;
 
 \ Words  -- this is the longest definition here, but mostly comments...

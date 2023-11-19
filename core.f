@@ -25,68 +25,77 @@
 \  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 \  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+;
 
-    
 \ The first line in this file defines our major defining word: ":"
 \ The following line bootstraps in the ability to handle comments.
-\ (Notice that is tail call recursive!)    
-
+\ (Notice that is tail call recursive!)
 \
-\ A clearer definition of colon would be (using words we define later):
-\
+\  We could define it clearer using words we define later as:
 \  (create) : is-compiling (create) is-compiling here compiling-word! postpone ; ;
+\
+\ FWIW, the lone ";" above is just for Emacs (Forth mode) since the first line
+\ confuses it and looks like the ; is commented out. Of course, it isn't...
 
+\ This file is meant as much to be read by you, dear reader, as by the Toolboxforth
+\ interpreter. While not a "literate" program, I wanted to make this the canonical
+\ document for how things work.    
+\
+\ In this file we shall see some primitive words commented out. This is because
+\ they were more efficiently coded in C, but you could very well uncomment them
+\ as a demonstration of how small the C core can be!
+
+\ Generally, this documentation is a reminder to myself of how Toolboxforth (tbforth)
+\ is implemented. 
     
-\ More comment words
+\ Here is another useful comment word: stack effects. It cannot span multiple lines...
 \    
+: ( next-char 41 - 3  0skip? ( ; immediate \ enable stack comments  )
+;
 
-: ( next-char 41 - 3  0skip? ( ; immediate ( enable stack comments )
-: { next-char 125 - 3  0skip? { ; immediate { Alternate comment }
+
 
 \ A RAM CELL is always 32 bits (4 bytes).
 \ A Dictionary CELL is always 16 bits (2 bytes).
 \
-: RAMC 4 ;
+: RCELL 4 ;
 : DCELL 2 ;
  
-\ Low level dictionary access.
+\ The dictionary starts at address 0. We have a single dictionary and the header
+\ describes the essentials:
 \
-: dversion ( - u)  0 @ ;
-: wordsize ( - u) 1 @ ;
-: maxdictcells ( - u) 2 @ ;
-: (here) ( - a) 3 ;
-: lwa  ( - a) 4 ;
-: uram-top@ ( -- u) 5 @ ;
+: dversion ( - u)  0 @ ;		  \ version of dictionary
+: cellsize ( - u) 1 @ ;			  \ size of cell (always 2, for now at least)
+: maxdictcells ( - u) 2 @ ;		  \ max size of dictionary in cells
+: (here) ( - a) 3 ;			  \ address of here
+: lwa  ( - a) 4 ;			  \ address of last (or current) word defined
+: uramsize ( -- u) 5 @ ;		  \ size of uram in RCELL
 
 
-\ Low level memory access. This is tightly bound to the tbforth implementation
-\ of memory (structure members).  Some may not be very useful (especially return stack stuf)
+\ Machine stuff (iram):
 \
+: state? ( - f) 0 iram + @  ;		  \ what state are we in?
+: reset-state ( - ) 0 0 iram + !  ;	  \ force not compiling mode
+: is-compiling ( - ) 1 0 iram + ! ;	  \ force compiling  mode
+: compiling? ( - f) state? 1 = ;	  \ are we compiling?
+: compiling-word! ( a --) 2 iram + ! ;	  \ save the address of word being compiled
+: ramsize ( - u) 1 iram + @  ;		  \ size of ram
 
-\ Machine stuff (iram)
+
+\ Task based RAM (uram):
 \
-: state? ( - f) 0 iram + @  ;
-: reset-state ( - ) 0 0 iram + !  ;
-: is-compiling ( - ) 1 0 iram + ! ;
-: compiling? ( - f) state? 1 = ;
-: ramsize ( - f) 1 iram + @  ;
-: compiling-word! ( a --) 2 iram + ! ;
+: uram-size ( - u) uram 0 + @  ;	  	\ size of uram
+: base ( - a) uram 1 +  ;			\ number base address
+: sidx ( - u) uram 2 + @ ;			\ data stack pos
+: ridx ( - u) uram 3 + @ ;			\ return stack pos
+: dslen ( - u) uram 4 + @ ;			\ data stack length
+: rslen ( - u) uram 5 + @ ;			\ return stack length
+: dsa ( - a)  uram 6 + ;			\ data stack address
+: rsa ( - a) dsa dslen + ;			\ return stack address
+: T ( - a) dsa sidx + 1- ;			\ top of data stack
+: R ( - a) dsa ridx + 1+ ;			\ top of return stack
 
-
-\ Task based RAM (uram)
-\
-: uram-size ( - u) uram 0 + @  ;
-: base ( - a) uram 1 +  ;  \ number base address
-: sidx ( - u) uram 2 + @ ;  \ data stack pos
-: ridx ( - u) uram 3 + @ ; \ return stack pos
-: dslen ( - u) uram 4 + @ ; \ data stack length
-: rslen ( - u) uram 5 + @ ; \ return stack length
-: dsa ( - a)  uram 6 + ; \ data stack address
-: rsa ( - a) dsa dslen + ; \ return stack address
-: T ( - a) dsa sidx + 1- ; \ top of data stack
-: R ( - a) dsa ridx + 1+ ; \ top of return stack
-
-\ Terminal input buffer...
+\ Terminal input buffer:
 \
 : tibidx iram 3 + ;
 : tibwordidx iram 4 + ;
@@ -326,7 +335,7 @@ variable _leaveloop
 
 : allot ( n -- )  0 do (allot1) drop loop ;
 
-: byte-allot ( n -- ) RAMC /mod + allot  ;
+: byte-allot ( n -- ) RCELL /mod + allot  ;
 
 \ Point to internally allocated (scratch) PAD
 \
