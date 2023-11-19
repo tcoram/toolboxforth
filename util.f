@@ -146,7 +146,7 @@ variable _endof
 
 \ Traditional "recurse" word for instrumenting recursion.
 \
-: recurse lwa @ 1+ count 63 and 2/ + [compile] lit , [compile] exec ; immediate
+: recurse lwa @ 1+  count 63 and 2 /mod + + [compile] lit , [compile] exec ; immediate
 
 \ Create a word to access memory via +c@ and +c!
 \ 
