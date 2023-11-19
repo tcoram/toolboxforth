@@ -11,7 +11,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 #include "tbforth.h"
-
+#include <errno.h>
 
 FILE *OUTFP;
 
@@ -182,12 +182,13 @@ tbforth_stat c_handle(void) {
     break;
   case OS_READB:
     {
-      char b;
+      int b;
       r2=dpop();
-      if (read(r2,&b,1) == -1)
+      if (read(r2,&b,1) == -1) {
 	dpush(-1);
-      else
+      } else {
 	dpush(b);
+      }
     }
     break;
   case OS_WRITEB:
