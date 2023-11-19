@@ -1,4 +1,4 @@
-(create) : 1 iram ! (create) 1 iram ! here 2 iram + !  postpone ;  ;
+(create) : 1 iram ! (create) 1 iram ! here 2 iram + !  ;
 : \ next-char 0 - 3 0skip? \ ; immediate
 
 \  toolboxforth - A tiny ROMable 16/32-bit FORTH-like scripting language
@@ -32,7 +32,7 @@
 \ (Notice that is tail call recursive!)
 \
 \  We could define it clearer using words we define later as:
-\  (create) : is-compiling (create) is-compiling here compiling-word! postpone ; ;
+\  (create) : is-compiling (create) is-compiling here compiling-word! ;
 \
 \ FWIW, the lone ";" above is just for Emacs (Forth mode) since the first line
 \ confuses it and looks like the ; is commented out. Of course, it isn't...
