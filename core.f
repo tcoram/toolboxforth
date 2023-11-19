@@ -49,7 +49,9 @@
 \ is implemented. 
     
 \ Here is another useful comment word: stack effects. It cannot span multiple lines...
-\    
+\  Note: This line is tricky.  The trailing ')' and (on next line) ';' is there for
+\  editors like Emacs, where the Forth mode would get confused...
+\
 : ( next-char 41 - 3  0skip? ( ; immediate \ enable stack comments  )
 ;
 
@@ -120,11 +122,6 @@
 \ Stack item count
 \
 : depth ( -- u) sidx 1  + ; 
-
-
-\ No operation... do we really need a nop? It's really just a placeholder...
-\
-: nop ;
 
 \ Useful numeric short cuts.
 \
@@ -199,7 +196,6 @@
     [compile] ; 
 ;
 
-
 \ More explicit stuff... for when we really, really want to be specific
 \ that we are manipulating dictionary space and not RAM space.
 \ It's worth noting here (and now), that we are a Harvard architecture Forth.
@@ -209,8 +205,7 @@
 \
 : dict@ [compile] @ ; immediate
 : dict! [compile] ! ; immediate
-: ddict@ ( a - u)
-  dup dict@ swap 1+ dict@ swap 16 lshift or ;
+: ddict@ ( a - u) dup dict@ swap 1+ dict@ swap 16 lshift or ;
 : ddict! ( d a - )
     over 16 rshift over dict!
     swap $0000ffff and swap 1+ dict! ;
