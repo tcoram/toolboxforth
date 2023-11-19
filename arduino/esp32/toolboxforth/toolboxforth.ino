@@ -13,9 +13,9 @@ extern "C" {
 // define if using USB_CDC for console and don't want delays when not plugged in
 //
 // #define USB_CDC_NO_DELAY
-// #define HAVE_FS
-#define FATFS
-#define MBED_TLS
+#define HAVE_FS
+// #define FATFS
+
 
 #ifdef HAVE_FS
 #ifdef FATFS
@@ -33,33 +33,10 @@ extern "C" {
 #endif
 
 
-  
-
 void load_ext_words () {
   OS_WORDS();
   MCU_WORDS();
 }
-
-
-#ifdef MBED_TLS
-#include "mbedtls/gcm.h"
-#include "mbedtls/base64.h"
-mbedtls_gcm_context aes;
-
-void encrypt (int dir, uint8_t *key, uint8_t *iv, uint8_t *in, uint8_t *out, int blocks) {
-  mbedtls_gcm_init( &aes );
-  mbedtls_gcm_setkey( &aes,MBEDTLS_CIPHER_ID_AES , (const unsigned char*) key, 256);
-  mbedtls_gcm_crypt_and_tag( &aes, dir ? MBEDTLS_GCM_ENCRYPT : MBEDTLS_GCM_DECRYPT,
-			     blocks*16,
-			     (const unsigned char*)iv, 96/8,
-			     NULL, 0,
-  			     (const unsigned char*)in,
-			     out,
-			     4, out+(blocks*16));
-  mbedtls_gcm_free( &aes );
-}
-
-#endif
 
 
 #if defined(ARDUINO_ESP32S2_DEV) || defined(ARDUINO_ESP32C3_DEV)
@@ -70,15 +47,26 @@ HardwareSerial HS [] = {  Serial1, Serial2 };
 tbforth_stat c_handle(void) {
   RAMC r1 = dpop();
 
+  if (Serial.available() && Serial.read() == '~') {
+      tbforth_abort_request(ABORT_CTRL_C);
+      tbforth_abort();	
+      return E_ABORT;
+  }
+
   switch(r1) {
+    RAMC pin, mode, val;
   case MCU_GPIO_MODE:
-    pinMode(dpop(),dpop());
+    pin = dpop();
+    mode = dpop();
+    pinMode(pin,mode);
     break;
   case MCU_GPIO_READ:
     dpush(digitalRead(dpop()));
     break;
   case MCU_GPIO_WRITE:
-    digitalWrite(dpop(), dpop());
+    pin = dpop();
+    val = dpop();
+    digitalWrite(pin, val);
     break;
   case MCU_UART_WRITE:
     r1 = dpop();
@@ -135,8 +123,16 @@ tbforth_stat c_handle(void) {
     digitalWrite(dpop(), HIGH);
     SPI.endTransaction();
     break;
+  case MCU_COLD:
+#ifdef HAVE_FS
+    if (FLASH_FS.exists("/TBFORTH.IMG")) {
+      FLASH_FS.remove("/TBFORTH.IMG");
+    }
+#endif
+  case MCU_RESTART:
+    esp_restart();
+    break;
   case MCU_WDT_CONFIG:
-    r1 = dpop();
     if (r1 > 0) {
       esp_task_wdt_init(r1, true);    
       esp_task_wdt_add (NULL);
@@ -150,6 +146,9 @@ tbforth_stat c_handle(void) {
     break;
   case MCU_DELAY:
     delay(dpop());
+    break;
+  case MCU_WAKE_REASON:
+    dpush(esp_sleep_get_wakeup_cause());
     break;
   case MCU_SLEEP:
     {
@@ -199,50 +198,6 @@ tbforth_stat c_handle(void) {
       dpush(_macid & 0xFFFFFFFF);
     }
     break;
-
-#ifdef MBED_TLS
-  case MCU_ENCODE64:
-    {
-      RAMC inaddr = dpop();
-      RAMC outaddr = dpop();
-      size_t olen;
-      uint8_t *in = (uint8_t*)&tbforth_ram[inaddr+1];
-      size_t inlen = tbforth_ram[inaddr];
-      uint8_t *out = (uint8_t*)&tbforth_ram[outaddr+1];
-      size_t oslen = tbforth_ram[outaddr];
-      mbedtls_base64_encode( out, oslen, &olen, in, inlen);
-      dpush(olen);
-    }
-    break;
-  case MCU_DECODE64:
-    {
-      RAMC inaddr = dpop();
-      RAMC outaddr = dpop();
-      size_t olen;
-      uint8_t *in = (uint8_t*)&tbforth_ram[inaddr+1];
-      size_t inlen = tbforth_ram[inaddr];
-      uint8_t *out = (uint8_t*)&tbforth_ram[outaddr+1];
-      size_t oslen = tbforth_ram[outaddr];
-      mbedtls_base64_decode(out, oslen, &olen, in, inlen);
-      dpush(olen);
-    }
-    break;
-  case MCU_ENCRYPT:
-  case MCU_DECRYPT:
-    {
-      RAMC inaddr = dpop();
-      RAMC outaddr = dpop();
-      RAMC blocks = dpop();
-      RAMC keyaddr = dpop();
-      RAMC ivaddr = dpop();
-      uint8_t *key = (uint8_t*)&tbforth_ram[keyaddr+1];
-      uint8_t *iv = (uint8_t*)&tbforth_ram[ivaddr+1];
-      uint8_t *in = (uint8_t*)&tbforth_ram[inaddr+1];
-      uint8_t *out = (uint8_t*)&tbforth_ram[outaddr+1];
-      encrypt (r1 == MCU_ENCRYPT, key, iv, in, out, blocks);
-    }
-    break;
-#endif
   case OS_SECS:
     {
       time_t now;
@@ -260,9 +215,12 @@ tbforth_stat c_handle(void) {
     dpush((CELL)rxc());
     break;
 #ifdef HAVE_FS
+  case OS_INCLUDE:
+    (void)tbforth_next_word();    
+    break;
   case OS_SAVE_IMAGE:			/* save image */
     {
-      FLASH_FS.begin(true);
+      //      FLASH_FS.begin(true);
       File fp;
       uint32_t dict_size= (dict_here())*sizeof(CELL);
       fp = FLASH_FS.open("/TBFORTH.IMG", FILE_WRITE);
@@ -395,20 +353,13 @@ void loop() {
       tbforth_init();
     } else {
       txs0("Can't load /TBFORTH.IMG...");
-      tbforth_init();
-      //      tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
-      //      tbforth_interpret("init-esp32");
     }
   }
-#else
-  tbforth_init();
-  //  tbforth_cdef("init-esp32", LOAD_ESP32_WORDS);
-  //  tbforth_interpret("init-esp32");
 #endif
+  tbforth_init();
 
   tbforth_interpret("init");
   tbforth_interpret("cr memory cr");
-  //  tbforth_interpret("quit");
   console();
 }
 
