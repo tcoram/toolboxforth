@@ -108,17 +108,34 @@
 : tibbuf iram 7 + ;
 
 
-\ Stuff that doesn't have to be in the C core, but is there for speed.
+\ ** Core words in C
 \
+\ Documentation TBD:
+\
+\ lit dlit drop jmp 0jmp? 0skip? , d,
+\ + - and or xor invert lshift rshift * / */ 0= 0<
+\ >r r> ! @  A! A+ (c@) (c!) (c@+) (c!+) ," +c! +c@
+\ (create) next-word next-char (find-head) (find-code) ; immediate postpone
+\ (allot1) bcopy bstr= >string >num u>string
+\ exec uram uram! iram interpret cf here  cold abort
+
+\
+\ Some Stuff that doesn't have to be in the C core, but is there for speed:
+\
+\ : 1+ 1 + ;
+\ : 1- 1 - ;
 \ : rpick  dsa ridx + 1+ 1+ + @ ;
-\ : r@ ( - a ) R @ ;
-\ : dup ( a - a a) T @ ;
+\ : r@ ( - u ) R @ ;
+\ : dup ( u - u u ) T @ ;
 \ : over ( a b - a b a) T 1- @ ;
 \ : swap ( a b - b a) >r >r 1 rpick r> r> drop ;
 \ : rot ( a b c - c b a) >r >r >r 2 rpick 1 rpick r> r> r> drop drop ;
 \ : mod ( y x  - u) over swap ( y y x) dup >r  ( y y x)  / r> * - ;
 \ : = ( a b - f) - 0= ;
-
+\ : 0> ( a - f ) swap 0< ;
+\ : < ( a b - f) - 0< ;
+\ : > ( a b - f) swap < ;
+\ : >= ( a b - ) - 0< 0= ;
 \ Stack item count
 \
 : depth ( -- u) sidx 1  + ; 
@@ -137,7 +154,7 @@
 : 2dup ( x y - x y x y)  over over ;
 : 2drop ( x y - ) drop drop ;
 : nip ( x y - y) over xor xor ;
-: 2swap ( a b c d - c d a b) rot >r rot r> ;
+: 2swap ( x1 y1 x2 y2 - x2 y2 x1 y1) rot >r rot r> ;
 
 \ Misc useful stuff
 \
@@ -160,8 +177,8 @@
 
 \ Helper word for building the below constructs. There is much difference between
 \ [compile] and postpone, but the extra level of indirection is useful: postpone
-\ "postpones" a word's invocation  while [compile] explicitely lays down a word
-\ without executing it.
+\ "postpones" an (immediate) word's invocation
+\ while [compile] explicitely lays down a word into the caller's definition.
 \
 : [compile]
     postpone [']			\ for later: get word
@@ -203,8 +220,13 @@
 \ to microcontrollers with distinct Flash and RAM (e.g. if you wish to execute
 \ the dictionary from Flash, etc).
 \
-: dict@ [compile] @ ; immediate
-: dict! [compile] ! ; immediate
+\ @ and !  are context sensitive. A RAM address is a 32 bit word with the leftmost bit
+\ set. A Dictionary address is a 32 bit word without the leftmost bit set.  This still
+\ allows for a massive amount of RAM to be addressed (536,870,911 RCELLS).
+\
+: is-ram? ( a - f) $80000000 and ;
+: dict@ ( a - u) [compile] @ ; immediate
+: dict! ( u a - ) [compile] ! ; immediate
 : ddict@ ( a - u) dup dict@ swap 1+ dict@ swap 16 lshift or ;
 : ddict! ( d a - )
     over 16 rshift over dict!

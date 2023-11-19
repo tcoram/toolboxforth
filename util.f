@@ -22,6 +22,10 @@
 \  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 \  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+\ ** Utilities
+\
+\ Things not strictly needed, but may be useful.
+\
 
 \ exit if stack value is < 1
 \
@@ -31,10 +35,6 @@
 \
 : exit-if0+ ( n -- ) -1 > if r> drop then ;
 
-
-\ Allocate a character buffer 
-\
-\ : c-allot ( n -- ) CELL / allot ;
 
 \ Variable used to keep track of how many 'of' clauses we have.
 \
