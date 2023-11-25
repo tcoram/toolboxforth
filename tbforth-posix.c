@@ -14,6 +14,7 @@
 #include <errno.h>
 
 FILE *OUTFP;
+FILE *INFP;
 
 #define CONFIG_IMAGE_FILE "tbforth.img"
 
@@ -23,7 +24,7 @@ struct timeval start_tv;
 
 
 uint8_t rxc(void) {
-  return getchar();
+  return getc(INFP);
 }
 
 
@@ -281,6 +282,7 @@ tbforth_stat c_handle(void) {
       if (fp != NULL) {
 	int stat = interpret_from(fp);
 	fclose(fp);
+	INFP = stdin;
 	if (stat != 0)
 	  return E_ABORT;
       } else {
@@ -299,6 +301,7 @@ char *line;
 int interpret_from(FILE *fp) {
   int stat;
   int16_t lineno = 0;
+  INFP = fp;
   while (!feof(fp)) {
     ++lineno;
     if (fp == stdin) txs0(" ok\r\n");
@@ -353,8 +356,9 @@ int load_f (char* fname) {
   FILE *fp;
   printf("   Loading %s\n",fname);
   fp = fopen(fname, "r");
-  if (fp != NULL) 
+  if (fp != NULL)  {
     stat=interpret_from(fp);
+  }
   fclose(fp);
   return stat;
 }
@@ -379,6 +383,8 @@ int main(int argc, char* argv[]) {
   tbforth_init();
 
   OUTFP = stdout;
+  INFP = stdin;
+
   if (argc < 2) {
     tbforth_load_prims();
     stat = load_f("./core.f");
@@ -396,6 +402,7 @@ int main(int argc, char* argv[]) {
   if (stat == 0) stat=tbforth_interpret("init");
   if (stat == 0) stat=tbforth_interpret("cr memory cr");
   do {
+    INFP = stdin;
     stat=interpret_from(stdin);
   } while (stat != 0);
 
