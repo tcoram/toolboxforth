@@ -174,10 +174,10 @@ variable _endof
 : ?dup   dup 0= if drop then ;
 
 : is-immediate? ( addr -- addr flag)
-    dup 1+ 128 and ;
+    dup 1+ @ 128 and ;
 
 : is-primitive? ( addr -- addr flag)
-    dup 1+ 64 and ;
+    dup 1+ @ 64 and ;
 
 
 \ Function pointers!
