@@ -202,7 +202,7 @@ CELL find_word(char* s, uint8_t len, RAMC* addr, bool *immediate, char *prim);
 /*
  Every entry in the dictionary consists of the following cells:
   [index of previous entry]  
-  [flags, < 128 byte name byte count]
+  [flags, < 64 byte name byte count]
   [name [optional pad byte]... [ data ..]
 */
 void make_word(char *str, uint8_t str_len) {
