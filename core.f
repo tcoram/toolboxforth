@@ -1,41 +1,53 @@
 (create) : 1 iram ! (create) 1 iram ! here 2 iram + !  ;
 : \ next-char 0 - 3 0skip? \ ; immediate
-
-\  toolboxforth - A tiny ROMable 16/32-bit FORTH-like scripting language
-\          for microcontrollers.
-\
-\  Copyright © 2009-2023 Todd Coram, todd@maplefish.com, USA.
-\
-\  Permission is hereby granted, free of charge, to any person obtaining
-\  a copy of this software and associated documentation files (the
-\  "Software"), to deal in the Software without restriction, including
-\  without limitation the rights to use, copy, modify, merge, publish,
-\  distribute, sublicense, and/or sell copies of the Software, and to
-\  permit persons to whom the Software is furnished to do so, subject to
-\  the following conditions:
-\  
-\  The above copyright notice and this permission notice shall be
-\  included in all copies or substantial portions of the Software.
-\  
-\  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-\  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-\  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-\  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-\  LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
-\  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-\  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
 ;
 
+\ 
+\ Toolboxforth - A tiny ROMable 16/32-bit FORTH-like scripting language
+\ for microcontrollers.
+\
+\ ~(This file is structure in [Knit (http://maplefish.com/todd/knit.html)]
+\ for [AFT  (http://maplefish.com/todd/aft.html)] documentation processing)~
+\
+\ *TOC
+\ ^<<
+\ Copyright © 2009-2023 Todd Coram, todd@maplefish.com, USA.
+\
+\ Permission is hereby granted, free of charge, to any person obtaining
+\ a copy of this software and associated documentation files (the
+\ "Software"), to deal in the Software without restriction, including
+\ without limitation the rights to use, copy, modify, merge, publish,
+\ distribute, sublicense, and/or sell copies of the Software, and to
+\ permit persons to whom the Software is furnished to do so, subject to
+\ the following conditions:
+\ 
+\ The above copyright notice and this permission notice shall be
+\ included in all copies or substantial portions of the Software.
+\ 
+\ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+\ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+\ MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+\ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+\ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+\ OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+\ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+\ ^>>
+\
+\ ** Preliminaries
+\
 \ The first line in this file defines our major defining word: ":"
 \ The following line bootstraps in the ability to handle comments.
 \ (Notice that is tail call recursive!)
 \
-\  We could define it clearer using words we define later as:
-\  (create) : is-compiling (create) is-compiling here compiling-word! ;
+\ We could define it clearer using words we define later as:
+\ | (create) : is-compiling (create) is-compiling here compiling-word! ; |
 \
-\ FWIW, the lone ";" above is just for Emacs (Forth mode) since the first line
-\ confuses it and looks like the ; is commented out. Of course, it isn't...
+\ The first is-compiling ensures that (create) is called when : is run
+\ The second is-compiling then assures that we are in compilation.
+\
+\ (FWIW, the lone ";" on line 2, of this file,  is just for Emacs (Forth mode)
+\ since the first line confuses it and looks like the ; is commented out.
+\ Of course, it isn't...)
 
 \ This file is meant as much to be read by you, dear reader, as by the Toolboxforth
 \ interpreter. While not a "literate" program, I wanted to make this the canonical
@@ -49,12 +61,9 @@
 \ is implemented. 
     
 \ Here is another useful comment word: stack effects. It cannot span multiple lines...
-\  Note: This line is tricky.  The trailing ')' and (on next line) ';' is there for
-\  editors like Emacs, where the Forth mode would get confused...
 \
-: ( next-char 41 - 3  0skip? ( ; immediate \ enable stack comments  )
-;
 
+: ( next-char 41 - 3  0skip? ( ; immediate \ enable stack comments  ) ;
 
 \ ** Dictionary and Memory
 \
@@ -65,6 +74,7 @@
 : RCELL 4 ;
 : DCELL 2 ;
  
+\ *** Dictionary
 \ The dictionary starts at address 0. We have a single dictionary and the header
 \ describes the essentials:
 \
@@ -76,7 +86,9 @@
 : uramsize ( -- u) 5 @ ;		  \ size of uram in RCELL
 
 
-\ Machine stuff (iram):
+\ *** IRAM
+\
+\ iram contains global information tied to the interpreter and compiler.
 \
 : state? ( - f) 0 iram + @  ;		  \ what state are we in?
 : reset-state ( - ) 0 0 iram + !  ;	  \ force not compiling mode
@@ -85,8 +97,18 @@
 : compiling-word! ( a --) 2 iram + ! ;	  \ save the address of word being compiled
 : ramsize ( - u) 1 iram + @  ;		  \ size of ram
 
+\ **** Terminal input buffer:
+\
+: tibidx iram 3 + ;
+: tibwordidx iram 4 + ;
+: tibwordlen iram 5 + ;
+: tib iram 6 + ;		( starts with cnt... )
+: tibbuf iram 7 + ;
 
-\ Task based RAM (uram):
+\ *** URAM
+\
+\ uram is memory that will hold your application/task data.
+\ It also contains the data and return stacks. 
 \
 : uram-size ( - u) uram 0 + @  ;	  	\ size of uram
 : base ( - a) uram 1 +  ;			\ number base address
@@ -99,62 +121,58 @@
 : T ( - a) dsa sidx + 1- ;			\ top of data stack
 : R ( - a) dsa ridx + 1+ ;			\ top of return stack
 
-\ Terminal input buffer:
-\
-: tibidx iram 3 + ;
-: tibwordidx iram 4 + ;
-: tibwordlen iram 5 + ;
-: tib iram 6 + ;		( starts with cnt... )
-: tibbuf iram 7 + ;
 
 \ ** Core words in C
 \
-\  lit    ( - u )  - pulls the next item in dictionary as a 16 bit number
-\  dlit   (  - u ) - pulls the next item in dictionary as a 32 bit number
-\  drop   ( u - )  - drops top item from stack
-\  jmp    ( a - ) - Jumps to dictionary address
-\  0jmp?  ( a f - ) - Jumps to address if f is 0
-\  0skip? ( u f - ) - Skips ahead u DCELLS if f is 0
-\  ,      ( u - ) - lays 16 bit number into dictionary in increments here
-\  d,     ( u - ) - lays 32 bit number into dictionary in increments here (by DCELL)
-\  * / + - and or xor ( u1 u2 - u3) - binary operators
-\  lshift rshift ( u b - u) - shift u left/right b bits
-\  */ ( u1 u2 u3 - u4) - multiply u1 and u2 (to a temp 64 bit result) and divide by u3
-\  0= 0< ( u - f) - comparisons against 0
-\  >r r>  - push or pop value to/from return stack
-\  !  @ - store/retrieve 32 bit values to/from either RAM or dictionary address
-\  +c! +c@ - Store/retrieve a byte to "counted" variable at address and increment count
-\  A! ( a - ) - Store RAM or dictionary address in A (mainly to access as 8 bit values)
-\  A+ ( u - ) - Adjust address pointer in A by u bytes
-\  (c@) ( - c) - Retrieve a byte from address pointed to by A
-\  (c!) ( c -) - Store a byte into  address pointed to by A
-\  (c@+) ( - c) - Retrieve a byte from address pointed to by A and incr A
-\  (c!+) ( - c) - Store a byte at address pointed to by A and incr A
-\  (create) ( <name> ) - Create a dictionary entry with name
-\  next-char ( - c) - retrieve next character from tib
-\  next-word ( - a u) - retrieve next word from tib and return addr and count
-\  (find-head) ( a u - a|0) - Find head of word definition for counted word string at a 
-\  (find-code) ( a u - a|0) - Find code/definition for countted word string at a
-\  ; ( - ) - terminate a word definition (go out of compile state)
-\  immediate - mark last compiled word as "immediate"
-\  postpone - do not exec an immediate word
-\  (allot1) - allocate 1 RCELL in RAM
-\  bcopy -
-\  bstr= -
-\  >num - 
-\  u>string -
-\  exec  ( a - ) - execute code address on stack
-\  uram ( - a) - address of user ram (e.g. stacks, variables, etc)
-\  uram! ( a - ) - set address of user ram  (e.g. stacks, variables, etc)
-\  iram ( - a) - address of iram
-\  interpret ( - f) - run outer intepreter on contents of tib and return status
-\  cf - ( ... u - ?) - execute extended C function
-\  here (  - a) - address of top of dictionary
-\  cold ( - ) reset dictionary to original state and restart interpreter
-\  abort ( - ) abort to top level interpretr
+\	* lit    ( - u )  - pulls the next item in dictionary as a 16 bit number
+\	* dlit   (  - u ) - pulls the next item in dictionary as a 32 bit number
+\	* drop   ( u - )  - drops top item from stack
+\	* jmp    ( a - ) - Jumps to dictionary address
+\	* 0jmp?  ( a f - ) - Jumps to address if f is 0
+\	* 0skip? ( u f - ) - Skips ahead u DCELLS if f is 0
+\	* ,      ( u - ) - lays 16 bit number into dictionary in increments here
+\	* d,     ( u - ) - lays 32 bit number into dictionary in increments here (by DCELL)
+\	* + * /  - and or xor ( u1 u2 - u3) - binary operators
+\	* lshift rshift ( u b - u) - shift u left/right b bits
+\	*  */ ( u1 u2 u3 - u4) - multiply u1 and u2 (to a temp 64 bit result) and divide by u3
+\	* 0= 0< ( u - f) - comparisons against 0
+\	* >r r>  - push or pop value to/from return stack
+\	* !  @ - store/retrieve 32 bit values to/from either RAM or dictionary address
+\	* +c! +c@ - Store/retrieve a byte to "counted" variable at address and increment count
+\	* A! ( a - ) - Store RAM or dictionary address in A (mainly to access as 8 bit values)
+\	* A+ ( u - ) - Adjust address pointer in A by u bytes
+\	* (c@) ( - c) - Retrieve a byte from address pointed to by A
+\	* (c!) ( c -) - Store a byte into  address pointed to by A
+\	* (c@+) ( - c) - Retrieve a byte from address pointed to by A and incr A
+\	* (c!+) ( - c) - Store a byte at address pointed to by A and incr A
+\	* (create) ( <name> ) - Create a dictionary entry with name
+\	* next-char ( - c) - retrieve next character from tib
+\	* next-word ( - a u) - retrieve next word from tib and return addr and count
+\	* (find-head) ( a u - a|0) - Find head of word definition for counted word string at a 
+\	* (find-code) ( a u - a|0) - Find code/definition for countted word string at a
+\	* ; ( - ) - terminate a word definition (go out of compile state)
+\	* immediate - mark last compiled word as "immediate"
+\	* postpone - do not exec an immediate word
+\	* (allot1) - allocate 1 RCELL in RAM
+\	* bcopy -
+\	* bstr= -
+\	* >num - 
+\	* u>string -
+\	* exec  ( a - ) - execute code address on stack
+\	* uram ( - a) - address of user ram (e.g. stacks, variables, etc)
+\	* uram! ( a - ) - set address of user ram  (e.g. stacks, variables, etc)
+\	* iram ( - a) - address of iram
+\	* interpret ( - f) - run outer intepreter on contents of tib and return status
+\	* cf - ( ... u - ?) - execute extended C function
+\	* here (  - a) - address of top of dictionary
+\	* cold ( - ) reset dictionary to original state and restart interpreter
+\	* abort ( - ) abort to top level interpretr
 \
-\ *** Some Stuff that doesn't have to be in the C core, but is there for speed:
+\ *** Optional C core
 \
+\ The following words are only defined in C for speed. They could just as well
+\ be easily defined here.
+\ ^<<
 \ : 1+ 1 + ;
 \ : 1- 1 - ;
 \ : rpick  dsa ridx + 1+ 1+ + @ ;
@@ -169,8 +187,7 @@
 \ : < ( a b - f) - 0< ;
 \ : > ( a b - f) swap < ;
 \ : >= ( a b - ) - 0< 0= ;
-\ :  dlit   (  <num> ) 
-
+\ ^>>
 
 \ Stack item count
 \
@@ -212,9 +229,9 @@
 : ['&] next-word (find-head)  1 ,  , ; immediate \ hack: LIT *is* 1
 
 \ Helper word for building the below constructs. There is much difference between
-\ [compile] and postpone, but the extra level of indirection is useful: postpone
+\ \[compile] and postpone, but the extra level of indirection is useful: postpone
 \ "postpones" an (immediate) word's invocation
-\ while [compile] explicitely lays down a word into the caller's definition.
+\ while \[compile] explicitely lays down a word into the caller's definition.
 \
 : [compile]
     postpone [']			\ for later: get word
@@ -277,7 +294,7 @@
 : if ( -- ifaddr)
     [compile] lit			\ precede placeholder
     here				\ push 'if' address on the stack
-    0 ,				\ placeholder for 'then' address
+    0 ,					\ placeholder for 'then' address
     [compile] 0jmp?			\ compile a conditional jmp to 'then'
 ; immediate
 
@@ -286,7 +303,7 @@
     swap dict!				\ fix 'if' to point to else block
     [compile] lit			\ precede placeholder
     here				\ push 'else' address on stack
-    0 ,				\ place holder for 'then' address
+    0 ,					\ place holder for 'then' address
     [compile] jmp			\ compile an uncoditional jmp to 'then'
 ; immediate
 
@@ -294,12 +311,21 @@
     here swap dict!			\ resolve 'if' or 'else' jmp address
 ; immediate
 
+\ I mentioned earlier that I would like to remove excessive uses of "else", well one
+\ way to do this is to simple "exit"  before then and put the "else" words after then.
+\
+\ : exit  r> drop ;
+: exit  [compile] ;  ; immediate
 
 \ **Looping
 \
 
-\ First "for". It's simpler and faster than do loop... but not as flexible
-\  It also always execute at least once.. regardless of value.
+\ *** Counted Looping
+\
+\ First "for". It's simpler and a bit faster than do loop... but not as flexible
+\ It also always execute at least once.. regardless of value. For uses a
+\ count down timer stored on the return stack, so you need to be careful to not
+\ keep any of your data on the return stack by the time "next" is called.
 \
 : for ( cnt -- faddr)
   [compile] 1-
@@ -318,9 +344,8 @@
   [compile] r> [compile] drop ; immediate
 
 \ Now, the traditional do loop. 
-\ It gets verbose/complicated...
+\ It gets verbose/complicated pretty quickly.
 \
-
 : do ( limit start -- doaddr)
     [compile] swap			( -- start limit)
     [compile] >r  [compile] >r		\ store them on the return stack
@@ -372,19 +397,18 @@ variable _leaveloop
     postpone +loop
 ; immediate
 
+\ This is the proper way to prematurely exit a do loop.  You just can't
+\ call "exit", you have to undo the changes to the return stack.
+\
 : unloop ( -- )
     [compile] r>   [compile] r>		\ clean up
     [compile] drop [compile] drop
 ; immediate
 
-\ Exit looks simple, but is tricky. Remember: top of the return stack is the caller of
-\ exit and we are essentially saying drop that and go to the caller's caller.
-\ Exit is tremendously useful alternative to "else" in if then constructs.
+\ *** Begin style  Looping
 \
-: exit  r> drop ;
-
-\ Begin loop variations... they are more straight forward than counting loops
-\ (and more flexible!).  They always begin with...
+\ Here are the Begin loop variations They are more straight forward than counting loops
+\ (and more flexible!).  They always begin with:
 \
 : begin  here ; immediate
 
@@ -413,6 +437,7 @@ variable _leaveloop
     ,
     [compile] 0jmp?
 ; immediate
+
 
 \ ** Miscelanious Memory stuff
 \

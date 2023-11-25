@@ -172,8 +172,12 @@ variable _endof
     count 0 do dup i +c@ pad c!+ loop ;
 
 : ?dup   dup 0= if drop then ;
+
 : is-immediate? ( addr -- addr flag)
     dup 1+ 128 and ;
+
+: is-primitive? ( addr -- addr flag)
+    dup 1+ 64 and ;
 
 
 \ Function pointers!
@@ -300,8 +304,10 @@ variable _endof
     until
     drop cr ;
 
+: (@+) (c@+) (c@+) 8 lshift + ;
 
+: dump-mem ( cnt &a - )
+    A! for (@+) h. r@ 16 mod 0= if cr then next ;
 
 : init ;
-
 
