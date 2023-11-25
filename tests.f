@@ -28,6 +28,7 @@ variable (bench)
     ." testing begin .. until-stack: "
     ['] test-begin-until-stack time-it  ;
 
+
 variable I
 variable D
 : factor ( n - )
@@ -39,3 +40,6 @@ variable D
 	I @ D +!  2 I !
     again ;
 
+\ Pure recursion test...
+\
+: factorial ( n - ) dup 2 > if dup 1- recurse * then ;
