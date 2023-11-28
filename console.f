@@ -28,9 +28,9 @@ tib constant TIB		( faster )
   clear-tib
   rd-line
   
-  interpret
+  interpret 
   dup 2 = if ." Huh? "  cr drop quit then
-  dup 6 = if ." Abort!" cr drop quit then
+  dup 7 = if ." Abort!" cr drop quit then
   drop
   quit ;
 
