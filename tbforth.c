@@ -56,6 +56,10 @@
 
 #ifdef SUPPORT_FLOAT_FIXED
 #include <math.h>
+
+#define FIXED_PT_PLACES		5
+#define FIXED_PT_MULT(x)	 (x*pow(10,5))
+
 #endif
 
 

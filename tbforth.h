@@ -41,10 +41,6 @@
 */
 #define TIB_SIZE		(40*4)  /* 160 bytes.. RAMC CELLS */
 
-#define FIXED_PT_DIVISOR	((double)(1000000.0))
-#define FIXED_PT_PLACES		6
-
-#define FIXED_PT_MULT(x)	 (x*(1000000))
 
 /*
   The dictionary is stored as 16 bit ints, so endianess matters.
