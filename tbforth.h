@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.03"
-#define DICT_VERSION 18
+#define TBFORTH_VERSION "4.04"
+#define DICT_VERSION 19
 
 // Some (minimal) memory protection for ! and dict_write()
 //
@@ -20,14 +20,18 @@
    This may, depending on your target architecture, live in RAM or Flash.
    Note: A Dictionary CELL is always 2 bytes!
 */
+#ifndef MAX_DICT_CELLS
 #define MAX_DICT_CELLS 		(0xFFFF)
+#endif
 
 /*
  Total user RAM (each ram cell is 4 bytes): includes stacks and (Scratch) PAD
 */
+#ifndef TOTAL_RAM_CELLS
 #define TOTAL_RAM_CELLS		(4096) /* 16KB */
-#define PAD_SIZE		(1024)  /* bytes */
+#endif
 
+#define PAD_SIZE		(1024)  /* bytes */
 /* Data Stack and Return Stack sizes (1 cells = 4 byte) */
 #define DS_CELLS 		50
 #define RS_CELLS 		50
@@ -86,7 +90,7 @@ extern struct dict  *dict;
 
 extern void tbforth_init(void);
 extern void tbforth_load_prims(void);
-extern void tbforth_abort(void);
+extern void tbforth_abort(CELL idx);
 extern tbforth_stat tbforth_interpret(char*);
 extern tbforth_stat c_handle(void);
 extern void tbforth_cdef (char*, int);

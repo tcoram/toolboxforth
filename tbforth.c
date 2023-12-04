@@ -258,7 +258,7 @@ void tbforth_init(void) {
   tbforth_uram->didx = -1;
   
   tbforth_abort_clr();
-  tbforth_abort();
+  tbforth_abort(0);
 
   tbforth_uram->base = 10;
 }
@@ -274,7 +274,8 @@ enum {
   OR, XOR, LSHIFT, RSHIFT, EQ_ZERO, GT_ZERO,  LT_ZERO, EQ, DROP, DUP,  SWAP, OVER, ROT,
   NEXT, CNEXT,  EXEC, LESS_THAN, GREATER_THAN, GREATER_THAN_EQ,
   INVERT, COMMA, DCOMMA, RPUSH, RPOP, FETCH, STORE, 
-  COMMA_STRING, CHAR_A_ADDR_STORE, CHAR_A_FETCH, CHAR_A_STORE, CHAR_A_INCR,
+  COMMA_STRING, CHAR_A_ADDR_STORE,  CHAR_A_B_SWAP,
+  CHAR_A_FETCH, CHAR_A_STORE, CHAR_A_INCR, 
   CHAR_A_FETCH_INCR, CHAR_A_STORE_INCR,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, 
   BYTE_COPY, BYTE_CMP,
@@ -340,6 +341,7 @@ void tbforth_load_prims(void) {
   store_prim("!", STORE);
   store_prim("@", FETCH);
   store_prim("A!", CHAR_A_ADDR_STORE);
+  store_prim("A<>B", CHAR_A_B_SWAP);
   store_prim("A+", CHAR_A_INCR);
   store_prim("(c@)", CHAR_A_FETCH);
   store_prim("(c!)", CHAR_A_STORE);
@@ -353,7 +355,8 @@ void tbforth_load_prims(void) {
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
   //  store_prim(":", DEF); 
-  store_prim(";", EXIT);  make_immediate();
+  //  store_prim(";", EXIT);  make_immediate();
+  store_prim(";", EXIT);
   store_prim("immediate", IMMEDIATE);
   store_prim("postpone", POSTPONE); make_immediate();
 
@@ -391,7 +394,7 @@ char* tbforth_count_str(CELL addr,CELL* new_addr) {
   return str;
 }
 
-void tbforth_abort(void) {
+void tbforth_abort(CELL wid) {
   if (tbforth_iram->state == COMPILING) {
     DICT_APPEND(ABORT);
   }
@@ -405,6 +408,7 @@ void tbforth_abort(void) {
 tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
   /* Scratch/Register variables for exec */
   static char* A;			/* (char) address register */
+  static char* B;			/* (char) address register */
   RAMC r1, r2;
   char *str1, *str2;
   char b;
@@ -413,7 +417,7 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
   while(1) {
     if (ip == 0) {
       tbforth_abort_request(ABORT_ILLEGAL);
-      tbforth_abort();		/* bad instruction */
+      tbforth_abort(ip);		/* bad instruction */
       return E_ABORT;
     }
     cmd = tbforth_dict[ip++];
@@ -421,7 +425,7 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
     switch (cmd) {
     case 0:
       tbforth_abort_request(ABORT_ILLEGAL);
-      tbforth_abort();		/* bad instruction */
+      tbforth_abort(ip-1);		/* bad instruction */
       return E_ABORT;
     case ABORT:
       tbforth_abort_request(ABORT_WORD);
@@ -607,6 +611,13 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       else
 	A =(char*)&tbforth_dict[r1];
       break;
+    case CHAR_A_B_SWAP:
+      {
+	char *T = A;
+	A = B;
+	B = T;
+      }
+      break;
     case CHAR_A_INCR:
       A+=dpop();
       break;
@@ -775,7 +786,7 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = find_word(str1, tbforth_iram->tibwordlen, 0, 0, &b);
       if (r1 == 0) {
 	tbforth_abort_request(ABORT_NAW);
-	tbforth_abort();
+	tbforth_abort(ip-1);
 	return E_NOT_A_WORD;
       }
       if (b) {			/* optimize for primitives... */
@@ -810,7 +821,7 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     }
     if (tbforth_aborting()) {
-      tbforth_abort();
+      tbforth_abort(ip-1);
       return E_ABORT;
     }
     if (toplevelprim) return U_OK;
@@ -853,14 +864,14 @@ tbforth_stat interpret_tib() {
 	RAMC num = parse_num(word,tbforth_uram->base);
 	if (tbforth_aborting()) {
 	  tbforth_abort_request(ABORT_NAW);
-	  tbforth_abort();
+	  tbforth_abort(wd);
 	  return E_NOT_A_WORD;
 	}
 	dpush(num);
       } else {
 	stat = exec(wd,primitive,tbforth_uram->ridx-1);
 	if (stat != U_OK) {
-	  tbforth_abort();
+	  tbforth_abort(wd);
 	  //	  tbforth_abort_clr();
 	  return stat;
 	}
@@ -870,7 +881,7 @@ tbforth_stat interpret_tib() {
       if (wd == 0) {	/* number or trash */
 	RAMC num = parse_num(word,tbforth_uram->base);
 	if (tbforth_aborting()) {
-	  tbforth_abort();
+	  tbforth_abort(wd);
 	  dict_end_def();
 	  return E_NOT_A_WORD;
 	}
@@ -886,7 +897,7 @@ tbforth_stat interpret_tib() {
 	stat = exec(wd,primitive,tbforth_uram->ridx-1);
 	if (stat != U_OK) {
 	  tbforth_abort_request(ABORT_ILLEGAL);
-	  tbforth_abort();
+	  tbforth_abort(wd);
 	  dict_end_def();
 	  return stat;
 	}

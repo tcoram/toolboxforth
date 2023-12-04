@@ -307,7 +307,6 @@ variable _endof
 : (@+) (c@+) (c@+) 8 lshift + ;
 
 : dump-mem ( cnt &a - )
-    A! for (@+) h. r@ 16 mod 0= if cr then next ;
+    A! 0 do (@+) h. i 16 mod 0= if cr then loop ;
 
 : init ;
-

@@ -349,7 +349,7 @@
 : do ( limit start -- doaddr)
     [compile] swap			( -- start limit)
     [compile] >r  [compile] >r		\ store them on the return stack
-    here				\ push address of 'do' onto stack
+    here  				\ push address of 'do' onto stack
 ; immediate ( -- r:limit r:start)
 
 : i ( -- inner_idx)

@@ -390,8 +390,8 @@ int main(int argc, char* argv[]) {
     stat = load_f("./core.f");
     load_ext_words();
     if (stat == 0) stat = load_f("./util.f");
-    if (stat == 0) stat = load_f("./console.f");
-    if (stat == 0) stat = load_f("./tests.f");
+    //    if (stat == 0) stat = load_f("./console.f");
+    //    if (stat == 0) stat = load_f("./tests.f");
   } else {
     if (config_open_r(argv[1])) {
       if (!config_read(dict))
