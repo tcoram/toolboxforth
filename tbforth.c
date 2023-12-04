@@ -151,6 +151,13 @@ RAMC parse_num(char *s, uint8_t base) {
   return num;
 }
 
+RAMC parse_num_cstr(char *s, int cnt, uint8_t base) {
+  static char tmp[64];
+  memcpy(tmp, s, min(cnt,63));
+  tmp[min(cnt,63)] = '\0';
+  return parse_num(tmp,base);
+}
+
 char* i32toa(int32_t value, char* result, int32_t base) {
   // check that the base if valid
   if (base < 2 || base > 36) { *result = '\0'; return result; }
@@ -758,11 +765,16 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       DICT_APPEND(r1);
       break;
     case PARSE_NUM:
-      r1 = dpop() & 0x7FFFFFFF;
-      str1=tbforth_count_str((CELL)r1,(CELL*)&r1);
-      str1[r1] = '\0';
-      tbforth_abort_clr();
-      r2 = parse_num(str1,tbforth_uram->base);
+      r1 = dpop();
+      if (r1 & 0x80000000) {
+	r1 &= 0x7FFFFFFF;
+	str1 =(char*)&tbforth_ram[r1+1];
+	r2 = tbforth_ram[r1];
+      } else {
+	str1 =(char*)&tbforth_dict[r1+1];
+	r2 = tbforth_dict[r1];
+      }
+      r2 = parse_num_cstr(str1, r2, tbforth_uram->base);
       if (!tbforth_aborting()) 
 	dpush(r2);
       else return E_NOT_A_NUM;
