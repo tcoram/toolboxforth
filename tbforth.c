@@ -668,12 +668,13 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
 	RAMC from, dest, fidx, didx, cnt;
 	cnt = dpop();
 	didx = dpop();
-	dest = dpop() & 0x7FFFFFFF;
+	dest = dpop();
 	fidx = dpop();
 	from  = dpop();
 	str1 = (from & 0x80000000) ? (char*)&tbforth_ram[from & 0x7FFFFFFF] + fidx :
 	  (char*)&tbforth_dict[from] + fidx ;
-	str2 = (char*)&tbforth_ram[dest] + didx;
+	str2 = (dest & 0x80000000) ? (char*)&tbforth_ram[dest & 0x7FFFFFFF] + didx :
+	  (char*)&tbforth_dict[dest] + didx ;
 	if (cmd == BYTE_CMP)
 	  dpush(-(memcmp (str2, str1, cnt) == 0));
 	else
