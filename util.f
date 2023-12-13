@@ -137,8 +137,8 @@ variable _endof
 
 \ fixed point
 \
-: f. ( f - ) 1000000 /mod (.) [char] . emit abs . ;
-: fu. ( f - ) 1000000 /mod (u.) [char] . emit u. ;
+: f. ( f - ) 1.0 /mod (.) [char] . emit abs . ;
+: fu. ( f - ) 1.0 /mod (u.) [char] . emit u. ;
 
 : .s
     [char] < emit sidx 1+ (.) [char] > emit 32 emit
