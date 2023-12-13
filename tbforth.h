@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.04"
-#define DICT_VERSION 19
+#define TBFORTH_VERSION "4.05"
+#define DICT_VERSION 20
 
 // Some (minimal) memory protection for ! and dict_write()
 //
@@ -110,6 +110,7 @@ struct tbforth_iram {
 struct tbforth_uram {
   RAMC len;		/* size of URAM */
   RAMC base;			/* numeric base for I/O */
+  RAMC fixedp;		/* fixed point places */
   RAMC didx;			/* data stack index */
   RAMC ridx;			/* return stack index */
   RAMC dsize;			/* size of data stack */
@@ -167,8 +168,8 @@ extern void tbforth_cdef (char* name, int val);
 // Some useful OS extensions...you can handle in c_handle() or not... its up to you
 // If you don't have them, just ignore them.
 //
-enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
-  OS_READB, OS_WRITEB, OS_MS, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN, OS_RAND};
+enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_SEEK,OS_CLOSE,
+  OS_READB, OS_WRITEB, OS_READBUF, OS_WRITEBUF, OS_MS, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN, OS_RAND};
 
 #define OS_WORDS() \
   tbforth_cdef("secs", OS_SECS); \
@@ -179,11 +180,14 @@ enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_CLOSE,
   tbforth_cdef("save-image", OS_SAVE_IMAGE); \
   tbforth_cdef("include", OS_INCLUDE); \
   tbforth_cdef("open-file", OS_OPEN); \
+  tbforth_cdef("seek", OS_SEEK); \
   tbforth_cdef("close-file", OS_CLOSE); \
   tbforth_cdef("connect-tcp", OS_TCP_CONN); \
   tbforth_cdef("close-tcp", OS_TCP_DISCONN); \
   tbforth_cdef("write-byte", OS_WRITEB); \
   tbforth_cdef("read-byte", OS_READB); \
+  tbforth_cdef("write-buf", OS_WRITEBUF); \
+  tbforth_cdef("read-buf", OS_READBUF); \
   tbforth_cdef("random-bytes", OS_RAND);
 
   

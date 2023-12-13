@@ -200,6 +200,34 @@ tbforth_stat c_handle(void) {
       dpush(write(r2,&b,1));
     }
     break;
+  case OS_READBUF:
+    {
+      char *buf;
+      r1=dpop(); 		/* fd */
+      r2=dpop();		/* length */
+      RAMC r3=dpop();		/* block */
+      if (r3 & 0x80000000) {
+	buf = (char*)&tbforth_ram[(r3 & 0x7FFFFFFF)];
+      } else {
+	buf = (char*)&tbforth_dict[r3];
+      }
+      dpush(read(r1, buf, r2));
+    }
+    break;
+  case OS_WRITEBUF:
+    {
+      char *buf;
+      r1=dpop(); 		/* fd */
+      r2=dpop();		/* length */
+      RAMC r3=dpop();		/* block */
+      if (r3 & 0x80000000) {
+	buf = (char*)&tbforth_ram[(r3 & 0x7FFFFFFF)];
+      } else {
+	buf = (char*)&tbforth_dict[r3];
+      }
+      dpush(write(r1, buf, r2));
+    }
+    break;
   case OS_CLOSE:
     close(dpop());
     break;
@@ -269,6 +297,13 @@ tbforth_stat c_handle(void) {
       }
       
       dpush(open(buf, r1));
+    }
+    break;
+  case OS_SEEK:
+    {
+      r1=dpop();		/* fd */
+      r2=dpop();		/* offset */
+      dpush(lseek(r1,r2, SEEK_SET));
     }
     break;
   case OS_INCLUDE:			/* include */

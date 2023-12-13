@@ -83,7 +83,7 @@
 : maxdictcells ( - u) 2 @ ;		  \ max size of dictionary in cells
 : (here) ( - a) 3 ;			  \ address of here
 : lwa  ( - a) 4 ;			  \ address of last (or current) word defined
-: uramsize ( -- u) 5 @ ;		  \ size of uram in RCELL
+: uram-used ( -- u) 5 @ ;		  \ size of used uram in RCELLs
 
 
 \ *** IRAM
@@ -112,11 +112,12 @@
 \
 : uram-size ( - u) uram 0 + @  ;	  	\ size of uram
 : base ( - a) uram 1 +  ;			\ number base address
-: sidx ( - u) uram 2 + @ ;			\ data stack pos
-: ridx ( - u) uram 3 + @ ;			\ return stack pos
-: dslen ( - u) uram 4 + @ ;			\ data stack length
-: rslen ( - u) uram 5 + @ ;			\ return stack length
-: dsa ( - a)  uram 6 + ;			\ data stack address
+: fp-places ( - a) uram 2 + ;			\ dec places for fixed point (default: 5)
+: sidx ( - u) uram 3 + @ ;			\ data stack pos
+: ridx ( - u) uram 4 + @ ;			\ return stack pos
+: dslen ( - u) uram 5 + @ ;			\ data stack length
+: rslen ( - u) uram 6 + @ ;			\ return stack length
+: dsa ( - a)  uram 7 + ;			\ data stack address
 : rsa ( - a) dsa dslen + ;			\ return stack address
 : T ( - a) dsa sidx + 1- ;			\ top of data stack
 : R ( - a) dsa ridx + 1+ ;			\ top of return stack
@@ -448,7 +449,7 @@ variable _leaveloop
 
 \ Point to internally allocated (scratch) PAD
 \
-uram 6 + dslen + rslen + constant pad
+dsa  dslen + rslen + constant pad
 
 
 \ Scratch variable (be careful, it doesn't nest and may be modified by anyone)

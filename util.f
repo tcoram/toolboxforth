@@ -279,8 +279,8 @@ variable _endof
     ." Data Stack: " dslen . ." cells. " 
     ." Return Stack: " rslen . ." cells."  cr
     9 emit
-    ." User RAM: " uramsize .
-    ." cells (" uramsize RCELL * . ." bytes) used out of " uram-size .
+    ." User RAM: " uram-used .
+    ." cells (" uram-used RCELL * . ." bytes) used out of " uram-size .
     ." cells" cr ;
 
 \ Words  -- this is the longest definition here, but mostly comments...

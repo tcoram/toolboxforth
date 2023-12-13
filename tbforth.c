@@ -58,7 +58,9 @@
 #include <math.h>
 
 #define FIXED_PT_PLACES		5
-#define FIXED_PT_MULT(x)	 (x*pow(10,5))
+RAMC fixed_pt_mult (double num) {
+  return (num*pow(10, tbforth_uram->fixedp));
+}
 
 #endif
 
@@ -132,7 +134,7 @@ RAMC parse_num(char *s, uint8_t base) {
   while (*p != '\0' && *p != ' ' && *p != '.') ++p;
   if (*p == '.') {		/* got a dot, must be floating */
     f = strtod(s,NULL);
-    return (RAMC)FIXED_PT_MULT(f);
+    return (RAMC)fixed_pt_mult(f);
   }
 #endif
   p = s;
@@ -267,7 +269,11 @@ void tbforth_init(void) {
   tbforth_uram->rsize = RS_CELLS;
   tbforth_uram->ridx = DS_CELLS + RS_CELLS;
   tbforth_uram->didx = -1;
-  
+
+#ifdef SUPPORT_FLOAT_FIXED
+  tbforth_uram->fixedp = FIXED_PT_PLACES;
+#endif
+
   tbforth_abort_clr();
   tbforth_abort(0);
 
