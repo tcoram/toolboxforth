@@ -22,6 +22,7 @@
 \  OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 \  WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+
 \ ** Utilities
 \
 \ Things not strictly needed, but may be useful.
@@ -86,49 +87,50 @@ variable _endof
 
 : [char]
     [compile] lit
-    32 word 1+ @ ,
-; immediate
+    32 word 1+ @ , ; immediate
+
+\ Some more compiling words
+\
+: [ reset-state ; immediate
+: ] is-compiling ; immediate
+: literal [compile] dlit d, ; immediate
 
 : s"   compiling?
     if 
 	postpone ," ['] count , 
     else
 	34 word count
-    then
-; immediate
+    then ; immediate
 
 : c"   compiling?
     if 
 	postpone ," 
     else
 	34 word
-    then
-; immediate
+    then ; immediate
 
 : type ( addr count - )
     dup 0> if 0 do  dup i +c@ emit  loop else drop then drop ;
 
 : dict-type type ;
  
-
 : ."   compiling?
     if
 	postpone ," ['] count , ['] type ,
     else
 	34 word count type
-    then
-; immediate
+    then ; immediate
 
 
 \ Print out top item on stack
 \
 : (.) ( n - ) sidx 1+ exit-if0- >string count type ;
-: . ( n - ) (.) 32 emit ;
+: . ( n - ) (.) space ;
 
 \ unsigned
 \
 : (u.) ( u - ) sidx 1+ exit-if0- u>string count type ;
-: u. ( u - ) (u.) 32 emit ;
+: u. ( u - ) (u.) space ;
 
 \ hex and binary
 \
@@ -141,7 +143,7 @@ variable _endof
 : fu. ( f - ) 1.0 /mod (u.) [char] . emit u. ;
 
 : .s
-    [char] < emit sidx 1+ (.) [char] > emit 32 emit
+    [char] < emit sidx 1+ (.) [char] > emit space
     sidx 1+ exit-if0-  sidx 1+ 0 do  dsa i + @ . loop ;
 
 \ Traditional "recurse" word for instrumenting recursion.
@@ -248,7 +250,7 @@ variable _endof
     DEBUG 0 = if drop drop exit then
    ." #DBG " secs . ." : "
     DEBUG 0 > if type then
-    DEBUG 1 > if [char] : emit 32 emit .s then
+    DEBUG 1 > if [char] : emit space .s then
     DEBUG 2 > if key [char] q = if r> exit then then cr ;
     
 : debug" ( <string> )
@@ -258,7 +260,7 @@ variable _endof
     DEBUG 0 = if drop exit then
    ." #DBG " secs . ." : "
     DEBUG 0 > if exec then
-    DEBUG 1 > if [char] : emit 32 emit .s then
+    DEBUG 1 > if [char] : emit space .s then
     DEBUG 2 > if key [char] q = if r> exit then then cr ;
 
 : debug-exec ( <word> )
@@ -297,7 +299,7 @@ variable _endof
         \ name lengths are stored in the lower 6 bits -> 0x3F=63
 	1+ count 63 and dup		\ get length of word's name
 	R1 @ + 74 > if cr 0 R1 ! then \ 74 characters per line
-	dup R1 +! type 32 emit 32 emit	\ print word's name
+	dup R1 +! type space space	\ print word's name
 	2 R1 +!                        \ add in spaces
 	@				\ get prev link from last word
 	dup 0 =                        \ 0 link means no more words!

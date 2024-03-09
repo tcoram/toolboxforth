@@ -7,7 +7,7 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.05"
+#define TBFORTH_VERSION "4.06"
 #define DICT_VERSION 20
 
 // Some (minimal) memory protection for ! and dict_write()
@@ -168,7 +168,7 @@ extern void tbforth_cdef (char* name, int val);
 // Some useful OS extensions...you can handle in c_handle() or not... its up to you
 // If you don't have them, just ignore them.
 //
-enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_SEEK,OS_CLOSE,
+enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_SEEK,OS_CLOSE, OS_DELETE,
   OS_READB, OS_WRITEB, OS_READBUF, OS_WRITEBUF, OS_MS, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN, OS_RAND};
 
 #define OS_WORDS() \
@@ -182,6 +182,7 @@ enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_SEEK,OS_CLOSE,
   tbforth_cdef("open-file", OS_OPEN); \
   tbforth_cdef("seek", OS_SEEK); \
   tbforth_cdef("close-file", OS_CLOSE); \
+  tbforth_cdef("delete-file", OS_DELETE); \
   tbforth_cdef("connect-tcp", OS_TCP_CONN); \
   tbforth_cdef("close-tcp", OS_TCP_DISCONN); \
   tbforth_cdef("write-byte", OS_WRITEB); \
@@ -203,6 +204,12 @@ enum {
   MCU_SPI_WRITE,
   MCU_SPI_READ,
   MCU_SPI_END_TRANS,
+  MCU_I2C_CFG,
+  MCU_I2C_START,
+  MCU_I2C_RESTART,
+  MCU_I2C_WRITE,
+  MCU_I2C_READ,
+  MCU_I2C_STOP,
   MCU_UART_BEGIN,
   MCU_UART_END,
   MCU_UART_AVAIL,
@@ -218,7 +225,10 @@ enum {
   MCU_SLEEP,
   MCU_WAKE_REASON,
   MCU_COLD,
-  MCU_RESTART
+  MCU_RESTART,
+  MCU_CPU_FREQUENCY,
+  MCU_POKE,
+  MCU_PEEK
 };
 
 #define MCU_WORDS()		     \
@@ -231,6 +241,12 @@ enum {
   tbforth_cdef("spi!", MCU_SPI_WRITE); \
   tbforth_cdef("spi@", MCU_SPI_READ); \
   tbforth_cdef("}spi", MCU_SPI_END_TRANS); \
+  tbforth_cdef("i2c-config", MCU_I2C_CFG); \
+  tbforth_cdef("i2c-start", MCU_I2C_START); \
+  tbforth_cdef("i2c-restart", MCU_I2C_RESTART); \
+  tbforth_cdef("i2c!", MCU_I2C_WRITE); \
+  tbforth_cdef("i2c@", MCU_I2C_READ); \
+  tbforth_cdef("i2c-stop", MCU_I2C_STOP); \
   tbforth_cdef("uart-begin", MCU_UART_BEGIN); \
   tbforth_cdef("uart-end", MCU_UART_END); \
   tbforth_cdef("uart?", MCU_UART_AVAIL); \
@@ -246,4 +262,7 @@ enum {
   tbforth_cdef("wake-reason", MCU_WAKE_REASON); \
   tbforth_cdef("cold", MCU_COLD); \
   tbforth_cdef("restart", MCU_RESTART); \
+  tbforth_cdef("cpufreq", MCU_CPU_FREQUENCY);	\
+  tbforth_cdef("poke", MCU_POKE);	\
+  tbforth_cdef("peek", MCU_PEEK);	\
 
