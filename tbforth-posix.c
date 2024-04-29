@@ -81,14 +81,15 @@ bool config_open_r(char* f) {
 }
 
 bool config_write(char *src, uint16_t size) {
+  fprintf(cfp,"%d\n", (int)size);
   fwrite((char*)src, size, 1, cfp);
   return 1;
 }
 
-bool config_read(void *dest) {
-  uint16_t size;
+bool config_read(char *dest) {
+  int size;
   (void)fscanf(cfp,"%d\n",(int*)&size);
-  (void)fread((char*)dest, size, 1, cfp);
+   (void)fread((char*)dest, size, 1, cfp);
   return 1;
 }
 bool config_close(void) {
@@ -157,15 +158,19 @@ tbforth_stat c_handle(void) {
   case OS_SAVE_IMAGE:			/* save image */
     {
       int dict_size= (dict_here());
-      //      int dict_size= (dict_here())*sizeof(CELL);
       char *s = tbforth_next_word();
       strncpy(buf, s, tbforth_iram->tibwordlen+1);
       buf[(tbforth_iram->tibwordlen)+1] = '\0';
 
       char *hfile = malloc(strlen(buf) + 3);
       strcpy(hfile,buf);
+
+      config_open_w(hfile);
+      config_write((char*)dict, dict_size*4);
+      config_close();
+      
       strcat(hfile,".h");
-      printf("Saving raw dictionary into %s\n", hfile);
+      printf("Saving dictionary into %s\n", hfile);
       fp = fopen(hfile,"w");
       free(hfile);
       fprintf(fp,"struct dict flashdict = {%d,%d,%d,%d,%d,%d,{\n",
@@ -419,7 +424,6 @@ const char* history_file = ".tbforth_history";
 int main(int argc, char* argv[]) {
   int stat = -1;
   dict = malloc(sizeof(struct dict));
-
   dict->version = DICT_VERSION;
   dict->word_size = sizeof(CELL);
   dict->max_cells = MAX_DICT_CELLS;
@@ -441,13 +445,12 @@ int main(int argc, char* argv[]) {
     stat = load_f("./core.f");
     load_ext_words();
     if (stat == 0) stat = load_f("./util.f");
-    //    if (stat == 0) stat = load_f("./console.f");
-    //    if (stat == 0) stat = load_f("./tests.f");
   } else {
     if (config_open_r(argv[1])) {
-      if (!config_read(dict))
+      if (!config_read((char*)dict))
 	exit(1);
       config_close();
+      stat = 0;
     }
   }
   if (stat == 0) stat=tbforth_interpret("init");

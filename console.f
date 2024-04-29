@@ -20,17 +20,16 @@ tib constant TIB		( faster )
     drop
     rd-line ;
 
-\ console... type exit to exit.
+
+\ console...
 \
 : quit
   clear-tib
   cr ." OK" cr
   clear-tib
   rd-line
-  
   interpret 
-  dup 2 = if ." Huh? "  cr drop quit then
+  dup 2 = if ." Huh?" cr drop quit then
   dup 7 = if ." Abort!" cr drop quit then
   drop
   quit ;
-
