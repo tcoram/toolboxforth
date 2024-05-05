@@ -14,9 +14,14 @@ extern "C" {
 #include "tbforth.img.h"
 }
 
+enum { RP_PWM_FREQ=200, RP_PWM_RANGE, RP_PWM_DUTY };
 void load_ext_words () {
   OS_WORDS();
   MCU_WORDS();
+  tbforth_interpret("mark RP-HAL");
+  tbforth_cdef("pwm-freq", RP_PWM_FREQ);
+  tbforth_cdef("pwm-range", RP_PWM_RANGE);
+  tbforth_cdef("pwm-duty", RP_PWM_DUTY);
 }
 
 SerialUART HS[]  = { Serial1, Serial2};
@@ -102,7 +107,7 @@ tbforth_stat c_handle(void) {
       //      FLASH_FS.begin(true);
       File fp;
       uint32_t dict_size= (dict_here())*sizeof(CELL);
-      fp = FLASH_FS.open("/TBFORTH.IMG", "w+");
+      fp = FLASH_FS.open("/TBFORTH.IMG", "w");
       fp.write(DICT_VERSION);
       fp.write((dict_size >> 24) & 0xFF);
       fp.write((dict_size >> 16) & 0xFF);
@@ -113,6 +118,16 @@ tbforth_stat c_handle(void) {
     }
     break;
 #endif
+  case RP_PWM_FREQ:
+    analogWriteFreq(dpop());
+    break;
+  case RP_PWM_RANGE:
+    analogWriteRange(dpop());
+    break;
+  case RP_PWM_DUTY:
+    r1 = dpop();
+    analogWrite(r1,dpop());
+    break;
   }
   return U_OK;
 }

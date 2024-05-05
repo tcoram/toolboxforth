@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.06"
-#define DICT_VERSION 20
+#define TBFORTH_VERSION "4.07"
+#define DICT_VERSION 21
 
 // Some (minimal) memory protection for ! and dict_write()
 //
@@ -169,11 +169,12 @@ extern void tbforth_cdef (char* name, int val);
 // If you don't have them, just ignore them.
 //
 enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_SEEK,OS_CLOSE, OS_DELETE,
-  OS_READB, OS_WRITEB, OS_READBUF, OS_WRITEBUF, OS_MS, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN, OS_RAND};
+  OS_READB, OS_WRITEB, OS_READBUF, OS_WRITEBUF, OS_MS, OS_US, OS_SECS, OS_POLL, OS_TCP_CONN, OS_TCP_DISCONN, OS_RAND};
 
 #define OS_WORDS() \
   tbforth_cdef("secs", OS_SECS); \
   tbforth_cdef("ms", OS_MS); \
+  tbforth_cdef("us", OS_US); \
   tbforth_cdef("emit", OS_EMIT); \
   tbforth_cdef("poll", OS_POLL); \
   tbforth_cdef("key", OS_KEY); \

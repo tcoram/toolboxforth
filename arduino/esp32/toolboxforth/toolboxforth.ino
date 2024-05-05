@@ -133,6 +133,7 @@ tbforth_stat c_handle(void) {
     esp_restart();
     break;
   case MCU_WDT_CONFIG:
+    r1 = dpop();
     if (r1 > 0) {
       esp_task_wdt_init(r1, true);    
       esp_task_wdt_add (NULL);

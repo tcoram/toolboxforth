@@ -25,9 +25,10 @@ tbforth-posix.o: tbforth.h
 
 
 arduino-stage: tbforth-posix
-	sed 's/TOTAL_RAM_CELLS\s+(.+)/TOTAL_RAM_CELLS $(TOTAL_RAM_CELLS)/' tbforth.h > /tmp/foo
-	cp tbforth.img.h tbforth.c arduino/esp32/toolboxforth
-	cp tbforth.img.h tbforth.c arduino/generic/toolboxforth
+#	sed 's/TOTAL_RAM_CELLS\s+(.+)/TOTAL_RAM_CELLS $(TOTAL_RAM_CELLS)/' tbforth.h > /tmp/foo
+	cp tbforth.img.h tbforth.c tbforth.h arduino/esp32/toolboxforth
+	cp tbforth.img.h tbforth.c tbforth.h arduino/generic/toolboxforth
+	cp tbforth.img.h tbforth.c tbforth.h arduino/rp-pico/toolboxforth
 
 clean:
 	-rm -f tbforth.img* *.o *.exe *~ *.stackdump *.aft-TOC tbforth-posix

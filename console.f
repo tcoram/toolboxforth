@@ -24,12 +24,12 @@ tib constant TIB		( faster )
 \ console...
 \
 : quit
-  clear-tib
-  cr ." OK" cr
-  clear-tib
-  rd-line
-  interpret 
-  dup 2 = if ." Huh?" cr drop quit then
-  dup 7 = if ." Abort!" cr drop quit then
-  drop
-  quit ;
+    clear-tib
+    cr ." OK" cr
+    clear-tib
+    rd-line
+    interpret 
+    dup 2 = if ." Huh?" cr drop quit then
+    dup 7 = if ." Abort!" cr drop quit then
+    drop
+    quit ;
