@@ -7,8 +7,8 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.07"
-#define DICT_VERSION 21
+#define TBFORTH_VERSION "4.071"
+#define DICT_VERSION 22
 
 // Some (minimal) memory protection for ! and dict_write()
 //
@@ -229,11 +229,17 @@ enum {
   MCU_RESTART,
   MCU_CPU_FREQUENCY,
   MCU_POKE,
-  MCU_PEEK
+  MCU_PEEK,
+  MCU_PWM_FREQ,
+  MCU_PWM_RANGE,
+  MCU_PWM_DUTY
 };
 
 #define MCU_WORDS()		     \
   tbforth_interpret("mark MCU-HAL"); \
+  tbforth_cdef("pwm-freq", MCU_PWM_FREQ); \
+  tbforth_cdef("pwm-range", MCU_PWM_RANGE); \
+  tbforth_cdef("pwm-duty", MCU_PWM_DUTY); \
   tbforth_cdef("gpio-mode", MCU_GPIO_MODE); \
   tbforth_cdef("gpio-read", MCU_GPIO_READ); \
   tbforth_cdef("gpio-write", MCU_GPIO_WRITE); \

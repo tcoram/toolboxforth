@@ -14,19 +14,16 @@ extern "C" {
 #include "tbforth.img.h"
 }
 
-enum { RP_PWM_FREQ=200, RP_PWM_RANGE, RP_PWM_DUTY };
-void load_ext_words () {
-  OS_WORDS();
-  MCU_WORDS();
-  tbforth_interpret("mark RP-HAL");
-  tbforth_cdef("pwm-freq", RP_PWM_FREQ);
-  tbforth_cdef("pwm-range", RP_PWM_RANGE);
-  tbforth_cdef("pwm-duty", RP_PWM_DUTY);
-}
-
 SerialUART HS[]  = { Serial1, Serial2};
 
 tbforth_stat c_handle(void) {
+
+  if (Serial.available() && Serial.read() == '~') {
+      tbforth_abort_request(ABORT_CTRL_C);
+      tbforth_abort(0);	
+      return E_ABORT;
+  }
+
   RAMC r1 = dpop();
 
   switch(r1) {
@@ -118,13 +115,13 @@ tbforth_stat c_handle(void) {
     }
     break;
 #endif
-  case RP_PWM_FREQ:
+  case MCU_PWM_FREQ:
     analogWriteFreq(dpop());
     break;
-  case RP_PWM_RANGE:
+  case MCU_PWM_RANGE:
     analogWriteRange(dpop());
     break;
-  case RP_PWM_DUTY:
+  case MCU_PWM_DUTY:
     r1 = dpop();
     analogWrite(r1,dpop());
     break;
@@ -234,6 +231,7 @@ void setup () {
 }
 
 void loop() {
+  while (!Serial);
 #ifdef HAVE_FS
   if (FLASH_FS.begin() && FLASH_FS.exists("/TBFORTH.IMG")) {
     txs0("trying to read TBFORTH.IMG");

@@ -34,8 +34,8 @@ extern "C" {
 
 
 void load_ext_words () {
-  OS_WORDS();
-  MCU_WORDS();
+  //  OS_WORDS();
+  //  MCU_WORDS();
 }
 
 
@@ -49,7 +49,7 @@ tbforth_stat c_handle(void) {
 
   if (Serial.available() && Serial.read() == '~') {
       tbforth_abort_request(ABORT_CTRL_C);
-      tbforth_abort();	
+      tbforth_abort(0);	
       return E_ABORT;
   }
 
