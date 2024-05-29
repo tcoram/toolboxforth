@@ -14,16 +14,19 @@ extern "C" {
 #include "tbforth.img.h"
 }
 
-SerialUART HS[]  = { Serial1, Serial2};
+enum { RP_PWM_FREQ=200, RP_PWM_RANGE, RP_PWM_DUTY };
+void load_ext_words () {
+  OS_WORDS();
+  MCU_WORDS();
+  tbforth_interpret("mark RP-HAL");
+  tbforth_cdef("pwm-freq", RP_PWM_FREQ);
+  tbforth_cdef("pwm-range", RP_PWM_RANGE);
+  tbforth_cdef("pwm-duty", RP_PWM_DUTY);
+}
+
+SerialUART* HS[]  = { &Serial1, &Serial2};
 
 tbforth_stat c_handle(void) {
-
-  if (Serial.available() && Serial.read() == '~') {
-      tbforth_abort_request(ABORT_CTRL_C);
-      tbforth_abort(0);	
-      return E_ABORT;
-  }
-
   RAMC r1 = dpop();
 
   switch(r1) {
@@ -38,19 +41,19 @@ tbforth_stat c_handle(void) {
     break;
   case MCU_UART_WRITE:
     r1 = dpop();
-    HS[r1].write(dpop());
+    HS[r1]->write((uint8_t)dpop());
     break;
   case MCU_UART_READ:
     r1 = dpop();
-    dpush(HS[r1].read());
+    dpush(HS[r1]->read());
     break;
   case MCU_UART_AVAIL:
     r1 = dpop();
-    dpush(HS[r1].available());
+    dpush(HS[r1]->available());
     break;
   case MCU_UART_END:
     r1 = dpop();
-    HS[r1].flush(); HS[r1].end();
+    HS[r1]->flush(); HS[r1]->end();
     break;
   case MCU_UART_BEGIN:
     {
@@ -58,10 +61,10 @@ tbforth_stat c_handle(void) {
       RAMC baud = dpop();
       RAMC rx  = dpop();
       RAMC tx  = dpop();
-      Serial1.setRX(rx);
-      Serial1.setTX(tx);
-      Serial1.setPollingMode(true);
-      HS[r1].begin(baud);
+      HS[r1]->setRX(rx);
+      HS[r1]->setTX(tx);
+      HS[r1]->setPollingMode(true);
+      HS[r1]->begin(baud);
     }
     break;
   case MCU_DELAY:
@@ -115,13 +118,13 @@ tbforth_stat c_handle(void) {
     }
     break;
 #endif
-  case MCU_PWM_FREQ:
+  case RP_PWM_FREQ:
     analogWriteFreq(dpop());
     break;
-  case MCU_PWM_RANGE:
+  case RP_PWM_RANGE:
     analogWriteRange(dpop());
     break;
-  case MCU_PWM_DUTY:
+  case RP_PWM_DUTY:
     r1 = dpop();
     analogWrite(r1,dpop());
     break;
@@ -231,7 +234,6 @@ void setup () {
 }
 
 void loop() {
-  while (!Serial);
 #ifdef HAVE_FS
   if (FLASH_FS.begin() && FLASH_FS.exists("/TBFORTH.IMG")) {
     txs0("trying to read TBFORTH.IMG");
