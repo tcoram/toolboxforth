@@ -466,3 +466,8 @@ variable R1
 	pad c!+
     again ;
 
+\ Compile-time interpreting... Not sure if this will have a lot of practical
+\ use, but is easy enough to provide:
+\
+: [ reset-state ; immediate
+: ] is-compiling ;
