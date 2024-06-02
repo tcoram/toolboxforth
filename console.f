@@ -21,15 +21,17 @@ tib constant TIB		( faster )
     rd-line ;
 
 
+: exit-console  r> r> drop drop ;
+
 \ console...
 \
-: quit
+: console
     clear-tib
     cr ." OK" cr
     clear-tib
     rd-line
     interpret 
-    dup 2 = if ." Huh?" cr drop quit then
-    dup 7 = if ." Abort!" cr drop quit then
+    dup 2 = if ." Huh?" cr drop console then
+    dup 7 = if ." Abort!" cr drop console then
     drop
-    quit ;
+    console ;
