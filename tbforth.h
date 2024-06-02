@@ -7,7 +7,7 @@
 
 /* Configuration */
 
-#define TBFORTH_VERSION "4.071"
+#define TBFORTH_VERSION "4.08"
 #define DICT_VERSION 22
 
 // Some (minimal) memory protection for ! and dict_write()
@@ -55,12 +55,12 @@
 /*
  Note: A Dictionary CELL is 2 bytes.
 */
- typedef uint16_t CELL;
+typedef uint16_t CELL;
 
 /*
   RAM cell size is 4 bytes.
 */
-typedef int32_t RAMC;
+typedef uint32_t RAMC;
 
 
 typedef enum { U_OK=0, COMPILING, E_NOT_A_WORD, E_NOT_A_NUM,
@@ -175,9 +175,9 @@ enum { OS_EMIT=1, OS_KEY, OS_SAVE_IMAGE, OS_INCLUDE, OS_OPEN, OS_SEEK,OS_CLOSE, 
   tbforth_cdef("secs", OS_SECS); \
   tbforth_cdef("ms", OS_MS); \
   tbforth_cdef("us", OS_US); \
-  tbforth_cdef("emit", OS_EMIT); \
+  tbforth_cdef("(emit)", OS_EMIT); \
   tbforth_cdef("poll", OS_POLL); \
-  tbforth_cdef("key", OS_KEY); \
+  tbforth_cdef("(key)", OS_KEY); \
   tbforth_cdef("save-image", OS_SAVE_IMAGE); \
   tbforth_cdef("include", OS_INCLUDE); \
   tbforth_cdef("open-file", OS_OPEN); \
@@ -237,9 +237,6 @@ enum {
 
 #define MCU_WORDS()		     \
   tbforth_interpret("mark MCU-HAL"); \
-  tbforth_cdef("pwm-freq", MCU_PWM_FREQ); \
-  tbforth_cdef("pwm-range", MCU_PWM_RANGE); \
-  tbforth_cdef("pwm-duty", MCU_PWM_DUTY); \
   tbforth_cdef("gpio-mode", MCU_GPIO_MODE); \
   tbforth_cdef("gpio-read", MCU_GPIO_READ); \
   tbforth_cdef("gpio-write", MCU_GPIO_WRITE); \
@@ -272,4 +269,7 @@ enum {
   tbforth_cdef("cpufreq", MCU_CPU_FREQUENCY);	\
   tbforth_cdef("poke", MCU_POKE);	\
   tbforth_cdef("peek", MCU_PEEK);	\
+  tbforth_cdef("pwm-freq", MCU_PWM_FREQ); \
+  tbforth_cdef("pwm-range", MCU_PWM_RANGE); \
+  tbforth_cdef("pwm-duty", MCU_PWM_DUTY); \
 
