@@ -79,9 +79,6 @@ variable _endof
 : min ( a b -- a|b) over over > if swap drop else drop then ;
 : max ( a b -- a|b) over over < if swap drop else drop then ;
 
-: cr 13 emit 10 emit ;
-: space 32 emit ;
-
 : char ( <char> -- c)
     32 word 1+ @ 255 and ;
 
@@ -89,11 +86,51 @@ variable _endof
     [compile] lit
     32 word 1+ @ , ; immediate
 
-\ Some more compiling words
+\ A shortcut to access to interpreter inside of word defintions
 \
 : [ reset-state ; immediate
 : ] is-compiling ; immediate
-: literal [compile] dlit d, ; immediate
+
+
+\ Function pointers!
+\
+\ example:
+\   defer WORDS
+\   ' words is WORDS
+
+: defer
+    (create)
+    [compile] ;
+    [compile] ;  ;
+
+:  is
+    compiling? if
+	[compile] lit
+	postpone ' ,
+	[compile] !
+    else
+	postpone ' !
+    then ; immediate
+
+\ Tricky.. let's vectorize emit and key. Then they can later point to user
+\ defined functions (e.g. multiple consoles!).
+\
+defer emit
+defer key
+: /console
+    ['] (emit) is emit
+    ['] (key) is key ;
+
+
+/console
+
+\
+\ Now we can define words with I/O and redirect them at any time...
+\
+
+: cr 13 emit 10 emit ;
+: space 32 emit ;
+
 
 : s"   compiling?
     if 
@@ -181,35 +218,6 @@ variable _endof
 : is-primitive? ( addr -- addr flag)
     dup 1+ @ 64 and ;
 
-
-\ Function pointers!
-\ example:
-\   defer WORDS
-\   ' words is WORDS
-
-: defer
-    (create)
-    [compile] dlit
-    (allot1) $80000000 or d,
-    [compile] @
-    [compile] exec
-    [compile] ;
-;
-
-
-\ bug.. this doesn't work for primitves!! ???
-\
-: is ( xt --)
-    compiling? if
-	[compile] dlit
-	postpone '
-	d,
-	[compile] 1+
-	[compile] ddict@
-	[compile] !
-    else
-	postpone ' 1+ ddict@ !
-    then ; immediate
 
 \ Synonym of a constant...
 \
@@ -311,4 +319,5 @@ variable _endof
 : dump-mem ( cnt &a - )
     A! 0 do (@+) h. i 16 mod 0= if cr then loop ;
 
-: init ;
+: init
+    /console ;
