@@ -219,7 +219,7 @@
 
 \ ** Word Creation and Addressing
 \
-\ Index to exec'able code of a wowr
+\ Index to exec'able code of a word
 \
 : ' ( -<word>- a) next-word (find-code) ;
 : ['] next-word (find-code)  1 ,  , ; immediate \ hack: LIT *is* 1
@@ -229,16 +229,18 @@
 : '& ( -<word>- a) next-word (find-head) ;
 : ['&] next-word (find-head)  1 ,  , ; immediate \ hack: LIT *is* 1
 
-\ Helper word for building the below constructs. There is much difference between
+\ postpone and [compile]
+\ Helper words for building the below constructs. There isn't much difference between
 \ \[compile] and postpone, but the extra level of indirection is useful: postpone
 \ "postpones" an (immediate) word's invocation
 \ while \[compile] explicitely lays down a word into the caller's definition.
 \
+: postpone next-word (find-code) , ; immediate
+
 : [compile]
     postpone [']			\ for later: get word
     ['] ,  ,				\ store a comma (for later get word)
 ; immediate
-
 
 \ A create that simply returns address of here after created word.  There isn't currently
 \ a DOES> companion... I'm not sure it is needed.
@@ -279,6 +281,9 @@
 \ allows for a massive amount of RAM to be addressed (536,870,911 RCELLS).
 \
 : is-ram? ( a - f) $80000000 and ;
+
+\ Deprecated dictionary storge words.. use ! and @  these may go away...
+\
 : dict@ ( a - u) [compile] @ ; immediate
 : dict! ( u a - ) [compile] ! ; immediate
 : ddict@ ( a - u) dup dict@ swap 1+ dict@ swap 16 lshift or ;

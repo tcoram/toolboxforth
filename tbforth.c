@@ -3,7 +3,7 @@
           for any C99 compiler. From POSIX to microcontrollers.
 	  Version 3.0. Based on uForth...
 
-  Copyright � 2009-2023 Todd Coram, todd@maplefish.com, USA.
+  Copyright � 2009-2024 Todd Coram, todd@maplefish.com, USA.
 
   Permission is hereby granted, free of charge, to any person obtaining
   a copy of this software and associated documentation files (the
@@ -296,7 +296,7 @@ enum {
   CHAR_A_FETCH_INCR, CHAR_A_STORE_INCR,
   VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, 
   BYTE_COPY, BYTE_CMP,
-  POSTPONE, _CREATE, PARSE_NUM,
+  _CREATE, PARSE_NUM,
   INTERP, NUM_TO_STR, UNUM_TO_STR,
   LAST_PRIMITIVE
 };
@@ -375,7 +375,6 @@ void tbforth_load_prims(void) {
   //  store_prim(";", EXIT);  make_immediate();
   store_prim(";", EXIT);
   store_prim("immediate", IMMEDIATE);
-  store_prim("postpone", POSTPONE); make_immediate();
 
   // extended opcodes
   //
@@ -802,20 +801,6 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
 	dpush(r1);
       } else {
 	dpush(r2);
-      }
-      break;
-    case POSTPONE:
-      str1 = tbforth_next_word();
-      r1 = find_word(str1, tbforth_iram->tibwordlen, 0, 0, &b);
-      if (r1 == 0) {
-	tbforth_abort_request(ABORT_NAW);
-	tbforth_abort(ip-1);
-	return E_NOT_A_WORD;
-      }
-      if (b) {			/* optimize for primitives... */
-	DICT_APPEND(tbforth_dict[r1]);
-      } else {
-	DICT_APPEND(r1);
       }
       break;
     case UNUM_TO_STR:
