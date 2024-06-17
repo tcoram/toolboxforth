@@ -16,6 +16,9 @@ The end result: This makes for a more compacted application that fits on smaller
 
 ## Features
 
+* *NEW* RP2040 (Raspberry Pi Pico) support with just SDK (no Arduino).
+* *NEW* More bootstrapping goodness... reducing C code.
+
 * *NEW* Now allowed to query/modify fixed point decimal places (default is 5).
 
 * *NEW* B register. Right now just A<>B to allow two addresses to be accessed.  We don't use the stack because we don't really know how big a pointer is (between various MCU/CPUs). So you can store an address in A, access it, swap it with B to allow access to B, and back again.
