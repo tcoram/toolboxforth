@@ -149,7 +149,11 @@ RAMC parse_num(char *s, uint8_t base) {
   }
   // Treat base 10 as 0 so we can handle 0xNN as well as decimal.
   //
-  RAMC num = strtol(p,&endptr, tbforth_uram->base == 10 ? 0 : tbforth_uram->base);
+  // On (some?) 32 bit hosts, strtol messes with sign and overflow of numbers
+  // > 7FFFFFFF.  I've seen this on the RP2040....
+  // So we'll use strtoll() to mitigate this... but why???
+  //
+  RAMC num = strtoll(p,&endptr, tbforth_uram->base == 10 ? 0 : tbforth_uram->base);
   tbforth_uram->base = curbase;
   if (*endptr != 32  && *endptr != '\0' && *endptr != '\n' && *endptr != '\r') {
     tbforth_abort_request(ABORT_NAW);
@@ -294,7 +298,7 @@ enum {
   COMMA_STRING, CHAR_A_ADDR_STORE,  CHAR_A_B_SWAP,
   CHAR_A_FETCH, CHAR_A_STORE, CHAR_A_INCR, 
   CHAR_A_FETCH_INCR, CHAR_A_STORE_INCR,
-  VAR_ALLOT, CALLC,   FIND, FIND_ADDR, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, 
+  VAR_ALLOT, CALLC,   FIND, CHAR_APPEND, CHAR_STORE, CHAR_FETCH, 
   BYTE_COPY, BYTE_CMP,
   _CREATE, PARSE_NUM,
   INTERP, NUM_TO_STR, UNUM_TO_STR,
@@ -309,6 +313,14 @@ void store_prim(char* str, CELL val) {
 }
 
 /* Bootstrap code */
+void tbforth_bootstrap(void) {
+  tbforth_init();
+  tbforth_load_prims();
+  tbforth_interpret("(create) : 1 iram ! (create) 1 iram ! here 2 iram + !  ;");
+  OS_WORDS();
+  MCU_WORDS();
+}
+
 void tbforth_load_prims(void) {
   dict->here = DICT_HEADER_WORDS+1;
   /*
@@ -379,8 +391,7 @@ void tbforth_load_prims(void) {
   // extended opcodes
   //
   store_prim("(allot1)", VAR_ALLOT);
-  store_prim("(find-code)", FIND);
-  store_prim("(find-head)", FIND_ADDR);
+  store_prim("(find)", FIND);
   store_prim("cold", COLD);
   store_prim("abort", ABORT);
   store_prim("bcopy", BYTE_COPY);
@@ -790,18 +801,13 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       else return E_NOT_A_NUM;
       break;
     case FIND:
-    case FIND_ADDR:
       r1 = dpop();
       str1=tbforth_count_str((CELL)r1,(CELL*)&r1);
       r1 = find_word(str1, r1, &r2, 0, &b);
       if (r1 > 0) {
 	if (b) r1 = tbforth_dict[r1];
       }
-      if (cmd == FIND) {
-	dpush(r1);
-      } else {
-	dpush(r2);
-      }
+      dpush(r2); dpush(r1);
       break;
     case UNUM_TO_STR:
     case NUM_TO_STR:			/* 32bit to string */

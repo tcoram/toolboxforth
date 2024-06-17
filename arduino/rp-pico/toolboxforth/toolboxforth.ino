@@ -11,13 +11,11 @@
 
 extern "C" {
 #include "tbforth.h"
-#include "tbforth.img.h"
+  // #include "tbforth.img.h"
 }
 
 enum { RP_PWM_FREQ=200, RP_PWM_RANGE, RP_PWM_DUTY };
 void load_ext_words () {
-  OS_WORDS();
-  MCU_WORDS();
   tbforth_interpret("mark RP-HAL");
   tbforth_cdef("pwm-freq", RP_PWM_FREQ);
   tbforth_cdef("pwm-range", RP_PWM_RANGE);
@@ -226,11 +224,26 @@ void console() {
   }
 }
 
-struct dict  *dict; // &flashdict;
+struct dict thedict;
+struct dict  *dict = &thedict; // &flashdict;
 
 void setup () {
-  dict = &flashdict;
+  //  dict = &flashdict;
+  dict->version = DICT_VERSION;
+  dict->word_size = sizeof(CELL);
+  dict->max_cells = MAX_DICT_CELLS;
+  dict->here =  0;
+  dict->last_word_idx = 0;
+  dict->varidx = 1;
+
   Serial.begin(115200);
+}
+void bootstrap () {
+  tbforth_init();
+  tbforth_load_prims();
+  tbforth_interpret("(create) : 1 iram ! (create) 1 iram ! here 2 iram + !  ;");
+  OS_WORDS();
+  MCU_WORDS();
 }
 
 void loop() {
@@ -243,16 +256,19 @@ void loop() {
       fp.read((uint8_t*)dict, dsize);
       fp.close();
       tbforth_init();
+      tbforth_interpret("init");
+      tbforth_interpret("cr memory cr");
     } else {
       txs0("Can't load /TBFORTH.IMG...");
+      bootstrap();
     }
+  } else {
+     bootstrap();
   }
-#endif
+#else
+     bootstrap();
+#endif  
 
-  tbforth_init();
-  tbforth_interpret("init");
-  tbforth_interpret("cr memory cr");
-  //  tbforth_interpret("quit");
   console();
 }
 

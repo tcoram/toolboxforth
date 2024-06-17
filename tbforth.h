@@ -85,6 +85,7 @@ extern RAMC tbforth_ram[];
 extern struct dict  *dict;
 
 extern void tbforth_init(void);
+extern void tbforth_bootstrap(void);
 extern void tbforth_load_prims(void);
 extern void tbforth_abort(CELL idx);
 extern tbforth_stat tbforth_interpret(char*);

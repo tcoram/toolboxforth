@@ -149,11 +149,9 @@
 \	* (create) ( <name> ) - Create a dictionary entry with name
 \	* next-char ( - c) - retrieve next character from tib
 \	* next-word ( - a u) - retrieve next word from tib and return addr and count
-\	* (find-head) ( a u - a|0) - Find head of word definition for counted word string at a 
-\	* (find-code) ( a u - a|0) - Find code/definition for countted word string at a
+\	* (find) ( a u - h c) - Find head & code of word definition for counted word string at a 
 \	* ; ( - ) - terminate a word definition (go out of compile state)
 \	* immediate - mark last compiled word as "immediate"
-\	* postpone - do not exec an immediate word
 \	* (allot1) - allocate 1 RCELL in RAM
 \	* bcopy -
 \	* bstr= -
@@ -218,6 +216,10 @@
 : /mod ( u u - r q)  2dup / >r mod r> ;
 
 \ ** Word Creation and Addressing
+\
+: (find-head) (find)  drop ;
+: (find-code) (find) swap drop ;
+
 \
 \ Index to exec'able code of a word
 \

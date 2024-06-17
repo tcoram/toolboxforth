@@ -321,3 +321,18 @@ defer key
 
 : init
     /console ;
+
+\ misc stuff that I may or may not have a use for.
+\
+: name ( lfa  - a c)  1+ count 63 and ;
+: cfa ( lfa - a ) 1+ dup @ 63 and  2 /mod + + 1+ ;
+
+: find-name ( code - a cnt t|f)
+    R1 !
+    lwa @
+    begin
+	dup cfa R1 @ = if name 1 exit then
+	@ dup 0 =
+    until
+    drop 0 ;
+

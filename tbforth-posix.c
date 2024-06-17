@@ -108,7 +108,6 @@ tbforth_stat c_handle(void) {
   RAMC r2, r1 = dpop();
   FILE *fp;
   static char buf[1024];
-
   switch(r1) {
   case OS_POLL:
     {
