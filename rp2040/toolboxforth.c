@@ -14,17 +14,14 @@ struct dict *dict;
 #define TOP_OF_DICT (XIP_BASE + TOP_OF_DICT_SECT)
 
 void save_image (void) {
-  printf("Saving: %d bytes (%d sectors) to addr 0x%08lX (sector 0x%04X)\n",
-	 sizeof (struct dict), DICT_SECTORS, TOP_OF_DICT, TOP_OF_DICT_SECT);
-  fflush(stdout);
-#if 1
+  //  printf("Saving: %d bytes (%d sectors) to addr 0x%08lX (sector 0x%04X)\n",
+  //	 sizeof (struct dict), DICT_SECTORS, TOP_OF_DICT, TOP_OF_DICT_SECT);
   int32_t ints = save_and_disable_interrupts();
   flash_range_erase (TOP_OF_DICT_SECT, DICT_SECTORS * FLASH_SECTOR_SIZE);
 
   flash_range_program (TOP_OF_DICT_SECT, (uint8_t*) dict,
 		       ((sizeof (struct dict) / FLASH_PAGE_SIZE)+1) * FLASH_PAGE_SIZE);
   restore_interrupts(ints);
-#endif
 }
 
 int load_image (void) {
@@ -47,10 +44,33 @@ void txs(char* s, int cnt) {
 }
 #define txs0(s) txs(s,strlen(s))
 
+enum {
+  RP_X_FETCH32 = 200,
+  RP_X_STORE32 = 201
+};
+
 tbforth_stat c_handle(void) {
+  uint32_t *regw;
+  uint8_t *regb;
   RAMC r2, r1 = dpop();
   switch(r1) {
-  case OS_POLL:
+  case RP_X_FETCH32 :
+    regw = (uint32_t*)dpop();
+    dpush(*regw);
+    break;
+  case RP_X_STORE32 :
+    regw = (uint32_t*)dpop();
+    *regw = (uint32_t)dpop();
+    break;
+  case MCU_COLD:
+    {
+      int32_t ints = save_and_disable_interrupts();
+      flash_range_erase (TOP_OF_DICT_SECT, 1);
+      restore_interrupts(ints);
+    }
+  case MCU_RESTART:
+#define AIRCR_Register (*((volatile uint32_t*)(PPB_BASE + 0x0ED0C)))
+    AIRCR_Register = 0x5FA0004;
     break;
   case OS_SECS:
     break;	
@@ -65,12 +85,9 @@ tbforth_stat c_handle(void) {
     break;
   case OS_SAVE_IMAGE:			/* save image */
     save_image();
-    break; 
-  case MCU_UART_BEGIN:
-    
     break;
-  return U_OK;
   }
+  return U_OK;
 }
 
 
@@ -100,9 +117,7 @@ int get_line (char* buf, int max) {
   
 int interpret() {
   int stat;
-  int16_t lineno = 0;
   while (1) {
-    ++lineno;
     txs0(" ok\r\n");
     if (get_line(linebuf,127) < 0) break;
     line = linebuf;
@@ -141,8 +156,6 @@ int interpret() {
   return 0;
 }
 
-#include <sys/types.h>
-#include <sys/stat.h>
 
 int main() {
   int stat = -1;
@@ -153,17 +166,25 @@ int main() {
 
   load_image();
 
-  if (dict->version != DICT_VERSION)  {
+  // Check version & word_size & max_cells as a "signature" that we have
+  // a valid image saved.
+  //
+  if (dict->version == DICT_VERSION &&
+      dict->word_size == sizeof(CELL) &&
+      dict->max_cells == MAX_DICT_CELLS)  {
+    tbforth_init();
+    tbforth_interpret("init");
+  } else {
+    // Bootstrap a raw Forth. You are going to have to send core.f, util.f, etc.
+    //
     dict->version = DICT_VERSION;
     dict->word_size = sizeof(CELL);
     dict->max_cells = MAX_DICT_CELLS;
     dict->here =  0;
     dict->last_word_idx = 0;
     dict->varidx = 1;
+
     tbforth_bootstrap();
-  } else {
-    tbforth_init();
-    tbforth_interpret("init");
   }
 
   do {

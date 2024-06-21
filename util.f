@@ -86,11 +86,6 @@ variable _endof
     [compile] lit
     32 word 1+ @ , ; immediate
 
-\ A shortcut to access to interpreter inside of word defintions
-\
-: [ reset-state ; immediate
-: ] is-compiling ; immediate
-
 
 \ Function pointers!
 \
