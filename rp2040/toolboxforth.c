@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <pico/stdlib.h>
+#include <hardware/gpio.h>
 #include <hardware/uart.h>
+#include <hardware/spi.h>
 #include <hardware/flash.h>
 #include <hardware/sync.h>
 #include "../tbforth.h"
@@ -46,14 +48,44 @@ void txs(char* s, int cnt) {
 
 enum {
   RP_X_FETCH32 = 200,
-  RP_X_STORE32 = 201
+  RP_X_STORE32 = 201,
+  RP_ERASE_FLASH = 202,
+  RP_WRITE_FLASH = 202,
+};
+
+// Use Arduino values...for compatibility
+//
+enum {
+  INPUT_PULLDOWN_MODE = 9,
+  INPUT_PULLUP_MODE = 5,
+  OUTPUT_MODE = 3,
+  INPUT_MODE = 1,
 };
 
 tbforth_stat c_handle(void) {
   uint32_t *regw;
   uint8_t *regb;
-  RAMC r2, r1 = dpop();
+  RAMC r3, r2, r1 = dpop();
   switch(r1) {
+  case RP_ERASE_FLASH:
+    {
+      int32_t count = dpop();
+      uint32_t start = dpop();
+      uint32_t ints = save_and_disable_interrupts();
+      flash_range_erase (start, count);
+      restore_interrupts(ints);
+    }
+    break;
+  case RP_WRITE_FLASH:
+    {
+      int32_t count = dpop();
+      uint32_t dest = dpop();
+      int32_t from = dpop();
+      uint32_t ints = save_and_disable_interrupts();
+      flash_range_program (dest, (uint8_t*) from, count);
+      restore_interrupts(ints);
+    }
+    break;
   case RP_X_FETCH32 :
     regw = (uint32_t*)dpop();
     dpush(*regw);
@@ -61,6 +93,82 @@ tbforth_stat c_handle(void) {
   case RP_X_STORE32 :
     regw = (uint32_t*)dpop();
     *regw = (uint32_t)dpop();
+    break;
+  case MCU_SPI_CFG:
+    {
+      RAMC clkpin = dpop();
+      RAMC misopin = dpop();
+      RAMC mosipin = dpop();
+      gpio_set_function(clkpin,1);
+      gpio_set_function(misopin,1);
+      gpio_set_function(mosipin,1);
+      spi_init(spi0, 10000000);
+    }
+    break;
+  case MCU_SPI_BEGIN_TRANS:
+    {
+      RAMC speed = dpop();
+      RAMC bitorder = dpop();
+      RAMC mode = dpop();
+      RAMC cspin = dpop();
+
+      spi_set_baudrate(spi0,speed);
+      {
+	int cpol, cpa;
+	switch(mode) {
+	case 1: cpol = 0; cpa = 1; break;
+	case 2: cpol = 1; cpa = 0; break;
+	case 3: cpol = 1; cpa = 1; break;
+	default:
+	case 0: cpol = 0; cpa = 0; break;
+	}
+	spi_set_format(spi0, 8, cpol, cpa, bitorder);
+      }
+      gpio_set_dir(cspin, 1);
+      gpio_put(cspin, 0);
+    }
+    break;
+  case MCU_SPI_WRITE:
+    { char ch = (char)dpop();
+      spi_write_blocking(spi0, &ch, 1);
+    }
+    break;
+  case MCU_SPI_READ:
+    { char ch;
+      spi_read_blocking(spi0, 0, &ch, 1);
+      dpush(ch);
+    }
+    break;
+  case MCU_SPI_END_TRANS:
+    gpio_put(dpop(), 1);
+    break;
+  case MCU_GPIO_MODE :
+    r2 = dpop();
+    r3 = dpop();
+    gpio_init(r2);
+    switch (r3) {
+    case OUTPUT_MODE:
+      gpio_set_dir(r2, 1);
+      break;
+    case INPUT_PULLUP_MODE:
+      gpio_pull_up(r2);
+      break;
+    case INPUT_PULLDOWN_MODE:
+      gpio_pull_down(r2);
+      break;
+    case INPUT_MODE:
+    default:
+      gpio_set_dir(r2, 0);
+      break;
+    }
+    break;
+  case MCU_GPIO_READ :
+    r2 = dpop();
+    dpush(gpio_get(r2));
+    break;
+  case MCU_GPIO_WRITE :
+    r2 = dpop();
+    gpio_put(r2, dpop());
     break;
   case MCU_COLD:
     {
@@ -74,7 +182,7 @@ tbforth_stat c_handle(void) {
     break;
   case OS_SECS:
     break;	
-  case OS_MS:		/* milliseconds */
+  case OS_DELAY:	
     sleep_ms(dpop());
     break;
   case OS_EMIT:			/* emit */

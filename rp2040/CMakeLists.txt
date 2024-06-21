@@ -18,7 +18,7 @@ pico_enable_stdio_usb(toolboxforth 1)
 pico_enable_stdio_uart(toolboxforth 0)
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(toolboxforth pico_stdlib hardware_flash)
+target_link_libraries(toolboxforth pico_stdlib hardware_flash hardware_spi)
 
 # create map/bin/hex/uf2 file in addition to ELF.
 pico_add_extra_outputs(toolboxforth)
