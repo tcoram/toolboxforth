@@ -184,6 +184,7 @@ tbforth_stat c_handle(void) {
     { uint64_t ts = time_us_64();
       dpush(ts/1000000);
     }
+    break;
   case OS_MS:
     { uint64_t ts = time_us_64();
       dpush(ts/1000);
