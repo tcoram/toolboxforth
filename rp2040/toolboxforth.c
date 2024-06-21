@@ -50,7 +50,7 @@ enum {
   RP_X_FETCH32 = 200,
   RP_X_STORE32 = 201,
   RP_ERASE_FLASH = 202,
-  RP_WRITE_FLASH = 202,
+  RP_WRITE_FLASH = 203,
 };
 
 // Use Arduino values...for compatibility
@@ -181,8 +181,15 @@ tbforth_stat c_handle(void) {
     AIRCR_Register = 0x5FA0004;
     break;
   case OS_SECS:
+    { uint64_t ts = time_us_64();
+      dpush(ts/1000000);
+    }
+  case OS_MS:
+    { uint64_t ts = time_us_64();
+      dpush(ts/1000);
+    }
     break;	
-  case OS_DELAY:	
+  case MCU_DELAY:	
     sleep_ms(dpop());
     break;
   case OS_EMIT:			/* emit */
