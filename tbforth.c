@@ -162,10 +162,9 @@ RAMC parse_num(char *s, uint8_t base) {
 }
 
 RAMC parse_num_cstr(char *s, int cnt, uint8_t base) {
-  static char tmp[64];
-  memcpy(tmp, s, min(cnt,63));
-  tmp[min(cnt,63)] = '\0';
-  return parse_num(tmp,base);
+  memcpy(PAD_STR, s, min(cnt,63));
+  *(PAD_STR+min(cnt,63)) = '\0';
+  return parse_num(PAD_STR,base);
 }
 
 char* i32toa(int32_t value, char* result, int32_t base) {
@@ -383,8 +382,6 @@ void tbforth_load_prims(void) {
   store_prim("(create)", _CREATE); 
   store_prim("next-word", NEXT);
   store_prim("next-char", CNEXT);
-  //  store_prim(":", DEF); 
-  //  store_prim(";", EXIT);  make_immediate();
   store_prim(";", EXIT);
   store_prim("immediate", IMMEDIATE);
 
@@ -409,7 +406,7 @@ void tbforth_load_prims(void) {
 
   // Allocate the scratch pad
   //
-  (void)VAR_ALLOTN(PAD_SIZE);
+  (void)VAR_ALLOTN(PAD_SIZE/sizeof(RAMC));
 }
 
 /* Return a counted string pointer
@@ -433,13 +430,18 @@ void tbforth_abort(CELL wid) {
 
 
 tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
-  /* Scratch/Register variables for exec */
+  // Scratch/Register variables. Most are emphemeral. They do not
+  // "exist" outside the currently executing words so giving Forth
+  // access to them has no advantage.
+  // We make them static so that they don't take up C stack space...
+  //
+  
   static char* A;			/* (char) address register */
   static char* B;			/* (char) address register */
-  RAMC r1, r2;
-  char *str1, *str2;
-  char b;
-  CELL cmd;
+  static RAMC r1, r2;
+  static char *str1, *str2;
+  static char char1;
+  static CELL cmd;
 
   while(1) {
     if (ip == 0) {
@@ -675,8 +677,8 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       ip = rpop();
       break;
     case CNEXT:
-      b = next_char();
-      dpush(b);
+      char1 = next_char();
+      dpush(char1);
       break;
     case BYTE_COPY:
     case BYTE_CMP:
@@ -715,8 +717,8 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
 	str1 =(char*)&tbforth_ram[r1+1];
 	tbforth_ram[r1]++;
 	str1+=r2;
-	b = dpop();
-	*str1 = b;
+	char1 = dpop();
+	*str1 = char1;
       } else
 	tbforth_abort_request(ABORT_ILLEGAL);
       break;
@@ -735,17 +737,17 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       r1 = 0;
       do {
 	r2 = 0;
-	b = next_char();
-	if (b == 0 || b == '"') break;
-	r2 |= BYTEPACK_FIRST(b);
+	char1 = next_char();
+	if (char1 == 0 || char1 == '"') break;
+	r2 |= BYTEPACK_FIRST(char1);
 	++r1;
-	b = next_char();
-	if (b != 0 && b != '"') {
+	char1 = next_char();
+	if (char1 != 0 && char1 != '"') {
 	  ++r1;
-	  r2 |= BYTEPACK_SECOND(b);
+	  r2 |= BYTEPACK_SECOND(char1);
 	}
 	DICT_APPEND(r2);
-      } while (b != 0 && b!= '"');
+      } while (char1 != 0 && char1 != '"');
       DICT_WRITE(rpop(),r1);
       if (tbforth_iram->state == COMPILING) {
 	DICT_WRITE(rpop(),dict_here());	/* jump over string */
@@ -803,9 +805,9 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
     case FIND:
       r1 = dpop();
       str1=tbforth_count_str((CELL)r1,(CELL*)&r1);
-      r1 = find_word(str1, r1, &r2, 0, &b);
+      r1 = find_word(str1, r1, &r2, 0, &char1);
       if (r1 > 0) {
-	if (b) r1 = tbforth_dict[r1];
+	if (char1) r1 = tbforth_dict[r1];
       }
       dpush(r2); dpush(r1);
       break;
