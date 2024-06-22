@@ -122,7 +122,7 @@ inline void DICT_APPEND_STRING(char*s, RAMC l) {
 RAMC tbforth_ram[TOTAL_RAM_CELLS];
 
 void tbforth_cdef (char* name, int val) {
-  snprintf(PAD_STR, PAD_SIZE, ": %s %d cf ;", name, val);
+  snprintf(PAD_STR, PAD_SIZE_BYTES, ": %s %d cf ;", name, val);
   tbforth_interpret(PAD_STR);
 }
 
@@ -406,7 +406,7 @@ void tbforth_load_prims(void) {
 
   // Allocate the scratch pad
   //
-  (void)VAR_ALLOTN(PAD_SIZE/sizeof(RAMC));
+  (void)VAR_ALLOTN(PAD_SIZE_BYTES/sizeof(RAMC));
 }
 
 /* Return a counted string pointer
@@ -950,7 +950,7 @@ tbforth_stat interpret_tib() {
 
 tbforth_stat tbforth_interpret(char *str) {
   CLEAR_TIB();
-  tbforth_iram->tibclen = min(PAD_SIZE, strlen(str)+1);
+  tbforth_iram->tibclen = min(PAD_SIZE_BYTES, strlen(str)+1);
   memcpy(tbforth_iram->tib, str, tbforth_iram->tibclen);
   return interpret_tib();
 }

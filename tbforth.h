@@ -31,7 +31,7 @@
 #define TOTAL_RAM_CELLS		(4096) /* 16KB */
 #endif
 
-#define PAD_SIZE		(1024)  /* bytes */
+#define PAD_SIZE_BYTES		(1024)  /* bytes */
 /* Data Stack and Return Stack sizes (1 cells = 4 byte) */
 #define DS_CELLS 		50
 #define RS_CELLS 		50
