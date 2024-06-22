@@ -39,7 +39,7 @@
 /*
  Input buffer... longest line you can give tbforth to interpret.
 */
-#define TIB_SIZE		(40*4)  /* 160 bytes.. RAMC CELLS */
+#define TIB_SIZE		(40*4)  /* 160 bytes..*/
 
 
 /*

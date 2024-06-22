@@ -428,6 +428,10 @@ void tbforth_abort(CELL wid) {
   tbforth_uram->didx = -1;
 }
 
+// Fix me... this is not in uram.. probably should be.
+//
+static char* A_REG;			/* (char) address register */
+static char* B_REG;			/* (char) address register */
 
 tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
   // Scratch/Register variables. Most are emphemeral. They do not
@@ -436,8 +440,6 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
   // We make them static so that they don't take up C stack space...
   //
   
-  static char* A;			/* (char) address register */
-  static char* B;			/* (char) address register */
   static RAMC r1, r2;
   static char *str1, *str2;
   static char char1;
@@ -636,31 +638,31 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
     case CHAR_A_ADDR_STORE:
       r1 = dpop();
       if (r1 &  0x80000000)
-	A =(char*)&tbforth_ram[0x7FFFFFFF & r1];
+	A_REG =(char*)&tbforth_ram[0x7FFFFFFF & r1];
       else
-	A =(char*)&tbforth_dict[r1];
+	A_REG =(char*)&tbforth_dict[r1];
       break;
     case CHAR_A_B_SWAP:
       {
-	char *T = A;
-	A = B;
-	B = T;
+	char *T = A_REG;
+	A_REG = B_REG;
+	B_REG = T;
       }
       break;
     case CHAR_A_INCR:
-      A+=dpop();
+      A_REG+=dpop();
       break;
     case CHAR_A_FETCH:
-      dpush(0xFF & *A);
+      dpush(0xFF & *A_REG);
       break;
     case CHAR_A_STORE:
-      *A = dpop();
+      *A_REG = dpop();
       break;
     case CHAR_A_FETCH_INCR:
-      dpush(0xFF & *A++);
+      dpush(0xFF & *A_REG++);
       break;
     case CHAR_A_STORE_INCR:
-      *A++ = dpop();
+      *A_REG++ = dpop();
       break;
     case CHAR_FETCH:
       r1 = dpop();
