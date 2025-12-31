@@ -1,9 +1,9 @@
 /*
   toolboxForth - A tiny ROMable 16/32-bit FORTH-like scripting language
           for any C99 compiler. From POSIX to microcontrollers.
-	  Version 3.0. Based on uForth...
+	  Version 3.1. Based on uForth...
 
-  Copyright � 2009-2024 Todd Coram, todd@maplefish.com, USA.
+  Copyright � 2009-2025 Todd Coram, todd@maplefish.com, USA.
 
   Permission is hereby granted, free of charge, to any person obtaining
   a copy of this software and associated documentation files (the
@@ -556,9 +556,9 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
     case MULT_DIV :
       {
 	uint64_t tmp;
-	r1 = dpop(); r2 = dpop();
-	tmp = r1 * r2;
+	tmp = dtop3() * dtop2();
 	r1 = dpop();
+	dpop(); dpop();
 	dpush(tmp/r1);
       }
       break;
