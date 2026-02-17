@@ -771,6 +771,7 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case DEF:
       tbforth_iram->state = COMPILING;
+      /* fallthrough */
     case _CREATE:
       dict_start_def();
       tbforth_next_word();
