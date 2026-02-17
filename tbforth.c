@@ -266,7 +266,7 @@ void tbforth_init(void) {
   tbforth_iram->state = 0;
   tbforth_iram->total_ram = TOTAL_RAM_CELLS;
   tbforth_uram = (struct tbforth_uram*)
-    ((char*)tbforth_ram + sizeof(struct tbforth_iram));
+    ((void*)tbforth_ram + sizeof(struct tbforth_iram));
   tbforth_uram->len = TOTAL_RAM_CELLS - sizeof(struct tbforth_iram);
   tbforth_uram->dsize = DS_CELLS;
   tbforth_uram->rsize = RS_CELLS;
