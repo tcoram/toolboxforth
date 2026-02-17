@@ -34,7 +34,7 @@ static char *line_read = (char *)NULL;
 
 /* Read a string, and return a pointer to it.
    Returns NULL on EOF. */
-char *rl_gets ()
+char *rl_gets (void)
 {
   /* If the buffer has already been allocated,
      return the memory to the free pool. */
@@ -99,7 +99,7 @@ bool config_close(void) {
 
 
 
-void load_ext_words () {
+void load_ext_words (void) {
   OS_WORDS();
   MCU_WORDS();
 }

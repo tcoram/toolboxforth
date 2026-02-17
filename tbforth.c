@@ -870,7 +870,7 @@ CELL find_word(char* s, uint8_t slen, RAMC* addr, bool *immediate, char *primiti
 
 // Goal: Rewrite this in tbforth...
 //
-tbforth_stat interpret_tib() {
+tbforth_stat interpret_tib(void) {
   tbforth_stat stat;
   char *word;
   CELL wd;

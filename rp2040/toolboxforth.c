@@ -231,7 +231,7 @@ int get_line (char* buf, int max) {
   return idx;
 }
   
-int interpret() {
+int interpret(void) {
   int stat;
   while (1) {
     txs0(" ok\r\n");
@@ -273,7 +273,7 @@ int interpret() {
 }
 
 
-int main() {
+int main(void) {
   int stat = -1;
   dict = malloc(sizeof(struct dict));
 
