@@ -65,7 +65,7 @@ RAMC fixed_pt_mult (double num) {
 #endif
 
 
-tbforth_stat interpret_tib();
+tbforth_stat interpret_tib(void);
 
 CELL *tbforth_dict;			/* treat dict struct like array */
 abort_t _tbforth_abort_request;	/* for emergency aborts */
