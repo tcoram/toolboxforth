@@ -65,7 +65,7 @@ RAMC fixed_pt_mult (double num) {
 #endif
 
 
-tbforth_stat interpret_tib();
+tbforth_stat interpret_tib(void);
 
 CELL *tbforth_dict;			/* treat dict struct like array */
 abort_t _tbforth_abort_request;	/* for emergency aborts */
@@ -266,7 +266,7 @@ void tbforth_init(void) {
   tbforth_iram->state = 0;
   tbforth_iram->total_ram = TOTAL_RAM_CELLS;
   tbforth_uram = (struct tbforth_uram*)
-    ((char*)tbforth_ram + sizeof(struct tbforth_iram));
+    ((void*)tbforth_ram + sizeof(struct tbforth_iram));
   tbforth_uram->len = TOTAL_RAM_CELLS - sizeof(struct tbforth_iram);
   tbforth_uram->dsize = DS_CELLS;
   tbforth_uram->rsize = RS_CELLS;
@@ -771,6 +771,7 @@ tbforth_stat exec(CELL ip, bool toplevelprim,uint8_t last_exec_rdix) {
       break;
     case DEF:
       tbforth_iram->state = COMPILING;
+      /* fallthrough */
     case _CREATE:
       dict_start_def();
       tbforth_next_word();
@@ -870,7 +871,7 @@ CELL find_word(char* s, uint8_t slen, RAMC* addr, bool *immediate, char *primiti
 
 // Goal: Rewrite this in tbforth...
 //
-tbforth_stat interpret_tib() {
+tbforth_stat interpret_tib(void) {
   tbforth_stat stat;
   char *word;
   CELL wd;
